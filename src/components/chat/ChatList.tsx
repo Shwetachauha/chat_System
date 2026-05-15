@@ -6,8 +6,9 @@ import {
   Typography,
   IconButton,
   InputAdornment,
+  Tooltip,
 } from '@mui/material';
-import { Search, GroupAdd } from '@mui/icons-material';
+import { Search, GroupAdd, ChatBubble } from '@mui/icons-material';
 import { useChat } from '@/hooks/useChat';
 import { useAppDispatch } from '@/hooks/useAuth';
 import { setCreateGroupDialogOpen } from '@/store/slices/uiSlice';
@@ -33,14 +34,39 @@ export const ChatList = memo(function ChatList() {
 
   return (
     <Box display="flex" flexDirection="column" height="100%">
-      <Box px={2} pt={2} pb={1}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-          <Typography variant="h6" fontWeight={700}>
-            Chats
-          </Typography>
-          <IconButton onClick={() => dispatch(setCreateGroupDialogOpen(true))} size="small">
-            <GroupAdd />
-          </IconButton>
+      {/* Header */}
+      <Box px={2.5} pt={3} pb={1.5}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2.5}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ChatBubble sx={{ fontSize: 18, color: 'white' }} />
+            </Box>
+            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: '-0.03em' }}>
+              Messages
+            </Typography>
+          </Box>
+          <Tooltip title="New Group">
+            <IconButton
+              onClick={() => dispatch(setCreateGroupDialogOpen(true))}
+              size="small"
+              sx={{
+                bgcolor: 'action.hover',
+                '&:hover': { bgcolor: 'action.selected' },
+              }}
+            >
+              <GroupAdd fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <TextField
@@ -52,14 +78,15 @@ export const ChatList = memo(function ChatList() {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search fontSize="small" color="action" />
+                <Search fontSize="small" sx={{ color: 'text.secondary' }} />
               </InputAdornment>
             ),
           }}
         />
       </Box>
 
-      <List sx={{ flex: 1, overflow: 'auto', px: 0 }}>
+      {/* Chat list */}
+      <List sx={{ flex: 1, overflow: 'auto', px: 1, pt: 1 }}>
         {filteredChats.length === 0 ? (
           <EmptyState variant="no-chats" />
         ) : (

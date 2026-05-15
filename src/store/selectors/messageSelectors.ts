@@ -21,3 +21,8 @@ export const selectMessageCursor = (chatId: string) => (state: RootState) =>
 
 export const selectPendingMessages = (state: RootState) => state.messages.pendingMessages;
 export const selectFailedMessages = (state: RootState) => state.messages.failedMessages;
+
+export const selectMessageById = (chatId: string, messageId?: string) => (state: RootState) => {
+  if (!messageId) return undefined;
+  return state.messages.messagesByChatId[chatId]?.entities[messageId];
+};

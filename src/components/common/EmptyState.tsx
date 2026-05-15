@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import { ChatBubbleOutline, GroupOutlined } from '@mui/icons-material';
+import { ChatBubbleOutline, GroupOutlined, Forum } from '@mui/icons-material';
 import { memo } from 'react';
 
 interface EmptyStateProps {
@@ -14,11 +14,11 @@ export const EmptyState = memo(function EmptyState({
   const getIcon = () => {
     switch (variant) {
       case 'no-chats':
-        return <GroupOutlined sx={{ fontSize: 64, color: 'text.disabled' }} />;
+        return <GroupOutlined sx={{ fontSize: 56, color: '#8b5cf6' }} />;
       case 'no-messages':
-        return <ChatBubbleOutline sx={{ fontSize: 64, color: 'text.disabled' }} />;
+        return <ChatBubbleOutline sx={{ fontSize: 56, color: '#6366f1' }} />;
       default:
-        return <ChatBubbleOutline sx={{ fontSize: 64, color: 'text.disabled' }} />;
+        return <Forum sx={{ fontSize: 56, color: '#6366f1' }} />;
     }
   };
 
@@ -26,11 +26,22 @@ export const EmptyState = memo(function EmptyState({
     if (message) return message;
     switch (variant) {
       case 'no-chats':
-        return 'No conversations yet. Start chatting!';
+        return 'No conversations yet';
       case 'no-messages':
-        return 'No messages yet. Send the first message!';
+        return 'No messages yet';
       default:
         return 'Select a conversation to start chatting';
+    }
+  };
+
+  const getSubMessage = () => {
+    switch (variant) {
+      case 'no-chats':
+        return 'Create a group or start a direct message';
+      case 'no-messages':
+        return 'Send the first message to get started';
+      default:
+        return 'Choose from your existing conversations or start a new one';
     }
   };
 
@@ -41,12 +52,28 @@ export const EmptyState = memo(function EmptyState({
       alignItems="center"
       justifyContent="center"
       height="100%"
-      gap={2}
-      p={3}
+      gap={1.5}
+      p={4}
     >
-      {getIcon()}
-      <Typography variant="body1" color="text.secondary" textAlign="center">
+      <Box
+        sx={{
+          width: 88,
+          height: 88,
+          borderRadius: '24px',
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.1) 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mb: 1,
+        }}
+      >
+        {getIcon()}
+      </Box>
+      <Typography variant="h6" fontWeight={700} color="text.primary" textAlign="center">
         {getMessage()}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" textAlign="center" maxWidth={280}>
+        {getSubMessage()}
       </Typography>
     </Box>
   );

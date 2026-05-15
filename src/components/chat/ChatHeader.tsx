@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import { ArrowBack, MoreVert, Call, Videocam } from '@mui/icons-material';
 import { Chat } from '@/types';
 import { Avatar } from '@/components/common/Avatar';
@@ -35,11 +35,14 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
     <Box
       display="flex"
       alignItems="center"
-      px={2}
-      py={1}
-      borderBottom={1}
-      borderColor="divider"
+      px={2.5}
+      py={1.5}
       bgcolor="background.paper"
+      sx={{
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        backdropFilter: 'blur(10px)',
+      }}
     >
       {onBack && (
         <IconButton onClick={onBack} sx={{ mr: 1 }}>
@@ -53,22 +56,29 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
         flex={1}
         overflow="hidden"
         onClick={handleHeaderClick}
-        sx={{ cursor: 'pointer' }}
+        sx={{
+          cursor: 'pointer',
+          borderRadius: 2,
+          p: 0.5,
+          mx: -0.5,
+          transition: 'background-color 0.2s',
+          '&:hover': { bgcolor: 'action.hover' },
+        }}
       >
         <Avatar
           name={chatName}
           src={chatAvatar}
-          size={40}
+          size={42}
           online={chat.type === 'private' ? isOnline : undefined}
         />
 
         <Box ml={1.5} overflow="hidden">
-          <Typography variant="subtitle1" fontWeight={600} noWrap>
+          <Typography variant="subtitle1" fontWeight={700} noWrap sx={{ letterSpacing: '-0.01em' }}>
             {chatName}
           </Typography>
           {chat.type === 'private' && otherUserId && <LastSeen userId={otherUserId} />}
           {chat.type === 'group' && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" color="text.secondary" fontWeight={500}>
               {chat.participants.length} members
             </Typography>
           )}
@@ -76,15 +86,30 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
       </Box>
 
       <Box display="flex" gap={0.5}>
-        <IconButton size="small">
-          <Call />
-        </IconButton>
-        <IconButton size="small">
-          <Videocam />
-        </IconButton>
-        <IconButton size="small">
-          <MoreVert />
-        </IconButton>
+        <Tooltip title="Voice call">
+          <IconButton
+            size="small"
+            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: 'rgba(99,102,241,0.08)' } }}
+          >
+            <Call fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Video call">
+          <IconButton
+            size="small"
+            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: 'rgba(99,102,241,0.08)' } }}
+          >
+            <Videocam fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="More">
+          <IconButton
+            size="small"
+            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: 'rgba(99,102,241,0.08)' } }}
+          >
+            <MoreVert fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
     </Box>
   );

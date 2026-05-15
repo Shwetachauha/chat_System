@@ -13,9 +13,10 @@ interface MessageListProps {
   chatId: string;
   onRetry?: (messageId: string) => void;
   onDelete?: (messageId: string) => void;
+  onReply?: (message: Message) => void;
 }
 
-export function MessageList({ chatId, onRetry, onDelete }: MessageListProps) {
+export function MessageList({ chatId, onRetry, onDelete, onReply }: MessageListProps) {
   const dispatch = useAppDispatch();
   const messages = useAppSelector(selectMessagesByChatId(chatId));
   const isLoading = useAppSelector(selectMessagesLoading(chatId));
@@ -82,6 +83,7 @@ export function MessageList({ chatId, onRetry, onDelete }: MessageListProps) {
             message={message}
             onRetry={onRetry}
             onDeleteFailed={onDelete}
+            onReply={onReply}
           />
         )}
       />

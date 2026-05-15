@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from '@/hooks/useAuth';
 import { setSidebarOpen } from '@/store/slices/uiSlice';
 import { ChatList } from '@/components/chat/ChatList';
 
-const SIDEBAR_WIDTH = 360;
+const SIDEBAR_WIDTH = 380;
 
 export function Sidebar() {
   const theme = useTheme();
@@ -20,6 +20,7 @@ export function Sidebar() {
           '& .MuiDrawer-paper': {
             width: '85vw',
             maxWidth: SIDEBAR_WIDTH,
+            border: 'none',
           },
         }}
       >
@@ -33,13 +34,13 @@ export function Sidebar() {
       sx={{
         width: SIDEBAR_WIDTH,
         minWidth: SIDEBAR_WIDTH,
-        borderRight: 1,
-        borderColor: 'divider',
         height: '100%',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         bgcolor: 'background.paper',
+        borderRight: '1px solid',
+        borderColor: 'divider',
       }}
     >
       <ChatList />

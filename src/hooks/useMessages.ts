@@ -22,7 +22,7 @@ export function useMessages(chatId: string) {
   const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const sendMessage = useCallback(
-    (content: string, type: MessageType = 'text', fileUrl?: string, fileName?: string) => {
+    (content: string, type: MessageType = 'text', fileUrl?: string, fileName?: string, replyTo?: string) => {
       if (!user || !chatId) return;
 
       const sanitizedContent = sanitizeInput(content);
@@ -40,6 +40,7 @@ export function useMessages(chatId: string) {
         status: 'sending',
         fileUrl,
         fileName,
+        replyTo,
         reactions: [],
         readBy: [],
         createdAt: new Date().toISOString(),

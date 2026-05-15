@@ -47,13 +47,16 @@ export const MessageActions = memo(function MessageActions({
       className="message-actions"
       sx={{
         position: 'absolute',
-        top: -4,
-        [isMine ? 'left' : 'right']: -4,
+        top: -36,
+        [isMine ? 'left' : 'right']: 0,
         display: 'none',
         bgcolor: 'background.paper',
-        borderRadius: 2,
-        boxShadow: 2,
-        zIndex: 10,
+        borderRadius: 3,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+        border: '1px solid',
+        borderColor: 'divider',
+        zIndex: 100,
+        p: 0.4,
         '.message-row:hover &': { display: 'flex' },
       }}
     >

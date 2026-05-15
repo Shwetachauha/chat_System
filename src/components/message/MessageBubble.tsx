@@ -13,21 +13,25 @@ import { formatMessageTime } from '@/utils/helpers';
 import { useAppSelector, useAppDispatch } from '@/hooks/useAuth';
 import { addReaction, removeReaction, editMessageContent, deleteMessage } from '@/store/slices/messageSlice';
 import { addMessage } from '@/store/slices/messageSlice';
+import { selectMessageById } from '@/store/selectors/messageSelectors';
 
 interface MessageBubbleProps {
   message: Message;
   onRetry?: (messageId: string) => void;
   onDeleteFailed?: (messageId: string) => void;
+  onReply?: (message: Message) => void;
 }
 
 export const MessageBubble = memo(function MessageBubble({
   message,
   onRetry,
   onDeleteFailed,
+  onReply,
 }: MessageBubbleProps) {
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.auth.user);
   const isMine = message.senderId === currentUser?.id;
+  const repliedMessage = useAppSelector(selectMessageById(message.chatId, message.replyTo));
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -123,7 +127,7 @@ export const MessageBubble = memo(function MessageBubble({
       py={0.3}
       sx={{ position: 'relative' }}
     >
-      <Box sx={{ position: 'relative', maxWidth: '70%' }}>
+      <Box sx={{ position: 'relative', maxWidth: '70%', overflow: 'visible' }}>
         {/* Hover actions bar */}
         <MessageActions
           message={message}
@@ -132,7 +136,7 @@ export const MessageBubble = memo(function MessageBubble({
           onEdit={() => setEditOpen(true)}
           onDelete={() => setDeleteOpen(true)}
           onForward={() => setForwardOpen(true)}
-          onReply={() => {}}
+          onReply={() => onReply?.(message)}
         />
 
         <Paper
@@ -141,13 +145,25 @@ export const MessageBubble = memo(function MessageBubble({
             minWidth: 80,
             px: 1.5,
             py: 1,
-            borderRadius: 2,
-            borderTopLeftRadius: isMine ? 16 : 4,
-            borderTopRightRadius: isMine ? 4 : 16,
-            bgcolor: isMine ? 'primary.main' : 'grey.100',
-            color: isMine ? 'primary.contrastText' : 'text.primary',
+            borderRadius: '18px',
+            borderTopLeftRadius: isMine ? '18px' : '4px',
+            borderTopRightRadius: isMine ? '4px' : '18px',
+            bgcolor: isMine
+              ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+              : '#f1f5f9',
+            background: isMine
+              ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+              : '#f1f5f9',
+            color: isMine ? '#ffffff' : 'text.primary',
             position: 'relative',
             opacity: message.status === 'sending' ? 0.7 : 1,
+            boxShadow: isMine
+              ? '0 2px 12px rgba(99, 102, 241, 0.25)'
+              : '0 1px 4px rgba(0, 0, 0, 0.04)',
+            transition: 'transform 0.1s ease',
+            '&:hover': {
+              transform: 'scale(1.01)',
+            },
           }}
         >
           {/* Forwarded indicator */}
@@ -156,6 +172,28 @@ export const MessageBubble = memo(function MessageBubble({
               <ForwardIcon sx={{ fontSize: 12 }} />
               <Typography variant="caption" fontSize={10}>
                 Forwarded
+              </Typography>
+            </Box>
+          )}
+
+          {/* Reply-to preview */}
+          {repliedMessage && (
+            <Box
+              sx={{
+                borderLeft: 3,
+                borderColor: isMine ? 'rgba(255,255,255,0.6)' : 'primary.main',
+                pl: 1,
+                mb: 0.8,
+                py: 0.3,
+                bgcolor: isMine ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                borderRadius: '0 4px 4px 0',
+              }}
+            >
+              <Typography variant="caption" fontWeight={600} display="block" sx={{ opacity: 0.85 }}>
+                {repliedMessage.senderName}
+              </Typography>
+              <Typography variant="caption" noWrap display="block" sx={{ opacity: 0.7, maxWidth: 200 }}>
+                {repliedMessage.isDeleted ? 'This message was deleted' : repliedMessage.content}
               </Typography>
             </Box>
           )}
