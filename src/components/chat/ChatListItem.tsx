@@ -36,17 +36,17 @@ export const ChatListItem = memo(function ChatListItem({
         mb: 0.8,
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         '&.Mui-selected': {
-          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
-          border: '1px solid rgba(102, 126, 234, 0.3)',
+          background: 'rgba(124,92,191,0.1)',
+          border: '1px solid rgba(124,92,191,0.2)',
           '&:hover': {
-            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
+            background: 'rgba(124,92,191,0.15)',
           },
         },
         '&:not(.Mui-selected)': {
           border: '1px solid transparent',
           '&:hover': {
-            bgcolor: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            bgcolor: 'rgba(124,92,191,0.06)',
+            border: '1px solid rgba(124,92,191,0.1)',
           },
         },
         '&:active': {
@@ -70,7 +70,7 @@ export const ChatListItem = memo(function ChatListItem({
               variant="subtitle2"
               noWrap
               fontWeight={chat.unreadCount > 0 ? 700 : 500}
-              sx={{ color: 'rgba(255,255,255,0.9)' }}
+              sx={{ color: '#2d1b69' }}
             >
               {chatName}
             </Typography>
@@ -80,7 +80,7 @@ export const ChatListItem = memo(function ChatListItem({
                 sx={{
                   flexShrink: 0,
                   ml: 1,
-                  color: chat.unreadCount > 0 ? '#a78bfa' : 'rgba(255,255,255,0.4)',
+                  color: chat.unreadCount > 0 ? '#7c5cbf' : 'rgba(0,0,0,0.4)' ,
                   fontWeight: chat.unreadCount > 0 ? 600 : 400,
                 }}
               >
@@ -95,7 +95,7 @@ export const ChatListItem = memo(function ChatListItem({
               variant="body2"
               noWrap
               sx={{
-                color: 'rgba(255,255,255,0.45)',
+                color: 'rgba(0,0,0,0.5)',
                 fontWeight: chat.unreadCount > 0 ? 500 : 400,
                 fontSize: '0.82rem',
               }}

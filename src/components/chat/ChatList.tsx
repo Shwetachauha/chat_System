@@ -51,16 +51,13 @@ export const ChatList = memo(function ChatList() {
   if (isLoading) return <LoadingSkeleton variant="chat-list" />;
 
   return (
-    <Box display="flex" flexDirection="column" height="100%" sx={{ bgcolor: '#0f0f1a' }}>
+    <Box display="flex" flexDirection="column" height="100%" sx={{ bgcolor: '#f3eefa' }}>
       {/* Header */}
       <Box
         sx={{
           background: '#e8dff5',
           px: 2.5,
-          pt: 3,
-          pb: 2,
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
+          py: 2,
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
@@ -138,14 +135,14 @@ export const ChatList = memo(function ChatList() {
       </Box>
 
       {/* Tabs */}
-      <Box px={1.5} pt={2}>
+      <Box px={1.5} pt={1.5}>
         <Tabs
           value={activeTab}
           onChange={(_, v) => setActiveTab(v)}
           variant="fullWidth"
           sx={{
-            minHeight: 40,
-            bgcolor: 'rgba(255,255,255,0.05)',
+            minHeight: 38,
+            bgcolor: 'rgba(124,92,191,0.08)',
             borderRadius: '12px',
             p: 0.5,
             '& .MuiTabs-indicator': {
@@ -155,11 +152,11 @@ export const ChatList = memo(function ChatList() {
               zIndex: 0,
             },
             '& .MuiTab-root': {
-              minHeight: 36,
+              minHeight: 34,
               textTransform: 'none',
               fontWeight: 600,
               fontSize: '0.8rem',
-              color: 'rgba(255,255,255,0.5)',
+              color: '#7c5cbf',
               zIndex: 1,
               transition: 'color 0.2s',
               '&.Mui-selected': { color: 'white' },
@@ -173,7 +170,7 @@ export const ChatList = memo(function ChatList() {
       </Box>
 
       {/* Chat list */}
-      <List sx={{ flex: 1, overflow: 'auto', px: 1, pt: 1.5, '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
+      <List sx={{ flex: 1, overflow: 'auto', px: 0.5, pt: 1, '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
         {filteredChats.length === 0 ? (
           <EmptyState variant="no-chats" />
         ) : (

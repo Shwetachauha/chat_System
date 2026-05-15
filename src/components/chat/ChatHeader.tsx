@@ -36,10 +36,10 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
       display="flex"
       alignItems="center"
       px={2.5}
-      py={1.5}
+      py={1.8}
       sx={{
         background: '#e8dff5',
-        boxShadow: '0 2px 8px rgba(124, 92, 191, 0.1)',
+        borderBottom: '1px solid rgba(124,92,191,0.1)',
       }}
     >
       {onBack && (

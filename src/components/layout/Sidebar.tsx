@@ -21,7 +21,7 @@ export function Sidebar() {
             width: '85vw',
             maxWidth: SIDEBAR_WIDTH,
             border: 'none',
-            bgcolor: '#0f0f1a',
+            bgcolor: '#f3eefa',
           },
         }}
       >
@@ -39,8 +39,8 @@ export function Sidebar() {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#0f0f1a',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
+        bgcolor: '#f3eefa',
+        borderRight: '1px solid rgba(124,92,191,0.12)',
       }}
     >
       <ChatList />
