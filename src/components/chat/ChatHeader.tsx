@@ -20,13 +20,13 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
   const userId = currentUser?.id || '';
   const chatName = getChatName(chat, userId);
   const chatAvatar = getChatAvatar(chat, userId);
-  const otherUserId = chat.type === 'private' ? getOtherUserId(chat, userId) : '';
+  const otherUserId = !chat.isGroupChat ? getOtherUserId(chat, userId) : '';
   const isOnline = useAppSelector(selectIsUserOnline(otherUserId));
 
   const handleHeaderClick = () => {
-    if (chat.type === 'private' && onOpenProfile) {
+    if (!chat.isGroupChat && onOpenProfile) {
       onOpenProfile();
-    } else if (chat.type === 'group' && onOpenGroupInfo) {
+    } else if (chat.isGroupChat && onOpenGroupInfo) {
       onOpenGroupInfo();
     }
   };
@@ -37,15 +37,13 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
       alignItems="center"
       px={2.5}
       py={1.5}
-      bgcolor="background.paper"
       sx={{
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        backdropFilter: 'blur(10px)',
+        background: '#e8dff5',
+        boxShadow: '0 2px 8px rgba(124, 92, 191, 0.1)',
       }}
     >
       {onBack && (
-        <IconButton onClick={onBack} sx={{ mr: 1 }}>
+        <IconButton onClick={onBack} sx={{ mr: 1, color: '#7c5cbf' }}>
           <ArrowBack />
         </IconButton>
       )}
@@ -62,24 +60,24 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
           p: 0.5,
           mx: -0.5,
           transition: 'background-color 0.2s',
-          '&:hover': { bgcolor: 'action.hover' },
+          '&:hover': { bgcolor: 'rgba(124,92,191,0.08)' },
         }}
       >
         <Avatar
           name={chatName}
           src={chatAvatar}
           size={42}
-          online={chat.type === 'private' ? isOnline : undefined}
+          online={!chat.isGroupChat ? isOnline : undefined}
         />
 
         <Box ml={1.5} overflow="hidden">
-          <Typography variant="subtitle1" fontWeight={700} noWrap sx={{ letterSpacing: '-0.01em' }}>
+          <Typography variant="subtitle1" fontWeight={700} noWrap sx={{ letterSpacing: '-0.01em', color: '#2d1b69' }}>
             {chatName}
           </Typography>
-          {chat.type === 'private' && otherUserId && <LastSeen userId={otherUserId} />}
-          {chat.type === 'group' && (
-            <Typography variant="caption" color="text.secondary" fontWeight={500}>
-              {chat.participants.length} members
+          {!chat.isGroupChat && otherUserId && <LastSeen userId={otherUserId} />}
+          {chat.isGroupChat && (
+            <Typography variant="caption" sx={{ color: '#7c5cbf' }} fontWeight={500}>
+              {chat.members.length} members
             </Typography>
           )}
         </Box>
@@ -89,7 +87,7 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
         <Tooltip title="Voice call">
           <IconButton
             size="small"
-            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: 'rgba(99,102,241,0.08)' } }}
+            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
           >
             <Call fontSize="small" />
           </IconButton>
@@ -97,7 +95,7 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
         <Tooltip title="Video call">
           <IconButton
             size="small"
-            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: 'rgba(99,102,241,0.08)' } }}
+            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
           >
             <Videocam fontSize="small" />
           </IconButton>
@@ -105,7 +103,7 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
         <Tooltip title="More">
           <IconButton
             size="small"
-            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: 'rgba(99,102,241,0.08)' } }}
+            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
           >
             <MoreVert fontSize="small" />
           </IconButton>

@@ -1,12 +1,3 @@
-import { socketManager } from '../socketManager';
-import { ClientEvent } from '@/types';
-
-export const presenceEmitters = {
-  emitOnline(): void {
-    socketManager.emit(ClientEvent.USER_ONLINE);
-  },
-
-  emitOffline(): void {
-    socketManager.emit(ClientEvent.USER_OFFLINE);
-  },
-};
+// Online/offline status is managed automatically by the socket connection.
+// No explicit emit needed — the server detects connect/disconnect.
+export const presenceEmitters = {};

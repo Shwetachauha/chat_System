@@ -7,66 +7,109 @@ import {
   IconButton,
   InputAdornment,
   Tooltip,
+  Tabs,
+  Tab,
 } from '@mui/material';
-import { Search, GroupAdd, ChatBubble } from '@mui/icons-material';
+import { Search, GroupAdd, ChatBubble, PersonSearch, People, Person, Forum } from '@mui/icons-material';
 import { useChat } from '@/hooks/useChat';
 import { useAppDispatch } from '@/hooks/useAuth';
 import { setCreateGroupDialogOpen } from '@/store/slices/uiSlice';
 import { ChatListItem } from './ChatListItem';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
+import { UserSearchDialog } from './UserSearchDialog';
 
 export const ChatList = memo(function ChatList() {
   const { chats, activeChat, isLoading, openChat } = useChat();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState('');
+  const [userSearchOpen, setUserSearchOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   const filteredChats = useMemo(() => {
-    if (!searchQuery.trim()) return chats;
-    const query = searchQuery.toLowerCase();
-    return chats.filter((chat) => {
-      const name = chat.name || chat.participants.map((p) => p.username).join(', ');
-      return name.toLowerCase().includes(query);
-    });
-  }, [chats, searchQuery]);
+    let filtered = chats;
+
+    // Filter by tab
+    if (activeTab === 1) {
+      filtered = filtered.filter((chat) => !chat.isGroupChat);
+    } else if (activeTab === 2) {
+      filtered = filtered.filter((chat) => chat.isGroupChat);
+    }
+
+    // Filter by search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((chat) => {
+        const name = chat.isGroupChat ? (chat.groupName || '') : (chat.chatWith?.name || '');
+        return name.toLowerCase().includes(query);
+      });
+    }
+
+    return filtered;
+  }, [chats, searchQuery, activeTab]);
 
   if (isLoading) return <LoadingSkeleton variant="chat-list" />;
 
   return (
-    <Box display="flex" flexDirection="column" height="100%">
+    <Box display="flex" flexDirection="column" height="100%" sx={{ bgcolor: '#0f0f1a' }}>
       {/* Header */}
-      <Box px={2.5} pt={3} pb={1.5}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2.5}>
-          <Box display="flex" alignItems="center" gap={1}>
+      <Box
+        sx={{
+          background: '#e8dff5',
+          px: 2.5,
+          pt: 3,
+          pb: 2,
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
+        }}
+      >
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box display="flex" alignItems="center" gap={1.2}>
             <Box
               sx={{
-                width: 36,
-                height: 36,
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                width: 40,
+                height: 40,
+                borderRadius: '12px',
+                background: 'rgba(124,92,191,0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <ChatBubble sx={{ fontSize: 18, color: 'white' }} />
+              <Forum sx={{ fontSize: 20, color: '#7c5cbf' }} />
             </Box>
-            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: '-0.03em' }}>
-              Messages
+            <Typography variant="h5" fontWeight={800} sx={{ color: '#2d1b69', letterSpacing: '-0.03em' }}>
+              Chats
             </Typography>
           </Box>
-          <Tooltip title="New Group">
-            <IconButton
-              onClick={() => dispatch(setCreateGroupDialogOpen(true))}
-              size="small"
-              sx={{
-                bgcolor: 'action.hover',
-                '&:hover': { bgcolor: 'action.selected' },
-              }}
-            >
-              <GroupAdd fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <Box display="flex" gap={0.5}>
+            <Tooltip title="Search Users">
+              <IconButton
+                onClick={() => setUserSearchOpen(true)}
+                size="small"
+                sx={{
+                  color: '#7c5cbf',
+                  bgcolor: 'rgba(124,92,191,0.1)',
+                  '&:hover': { bgcolor: 'rgba(124,92,191,0.2)' },
+                }}
+              >
+                <PersonSearch fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="New Group">
+              <IconButton
+                onClick={() => dispatch(setCreateGroupDialogOpen(true))}
+                size="small"
+                sx={{
+                  color: '#7c5cbf',
+                  bgcolor: 'rgba(124,92,191,0.1)',
+                  '&:hover': { bgcolor: 'rgba(124,92,191,0.2)' },
+                }}
+              >
+                <GroupAdd fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
 
         <TextField
@@ -78,15 +121,59 @@ export const ChatList = memo(function ChatList() {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search fontSize="small" sx={{ color: 'text.secondary' }} />
+                <Search fontSize="small" sx={{ color: '#7c5cbf' }} />
               </InputAdornment>
             ),
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '14px',
+              bgcolor: '#ffffff',
+              color: '#1a1a2e',
+              '& fieldset': { borderColor: 'rgba(124,92,191,0.2)' },
+              '& input::placeholder': { color: 'rgba(0,0,0,0.4)', opacity: 1 },
+            },
           }}
         />
       </Box>
 
+      {/* Tabs */}
+      <Box px={1.5} pt={2}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          variant="fullWidth"
+          sx={{
+            minHeight: 40,
+            bgcolor: 'rgba(255,255,255,0.05)',
+            borderRadius: '12px',
+            p: 0.5,
+            '& .MuiTabs-indicator': {
+              height: '100%',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              zIndex: 0,
+            },
+            '& .MuiTab-root': {
+              minHeight: 36,
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              color: 'rgba(255,255,255,0.5)',
+              zIndex: 1,
+              transition: 'color 0.2s',
+              '&.Mui-selected': { color: 'white' },
+            },
+          }}
+        >
+          <Tab icon={<ChatBubble sx={{ fontSize: 16 }} />} iconPosition="start" label="All" />
+          <Tab icon={<Person sx={{ fontSize: 16 }} />} iconPosition="start" label="Direct" />
+          <Tab icon={<People sx={{ fontSize: 16 }} />} iconPosition="start" label="Groups" />
+        </Tabs>
+      </Box>
+
       {/* Chat list */}
-      <List sx={{ flex: 1, overflow: 'auto', px: 1, pt: 1 }}>
+      <List sx={{ flex: 1, overflow: 'auto', px: 1, pt: 1.5, '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
         {filteredChats.length === 0 ? (
           <EmptyState variant="no-chats" />
         ) : (
@@ -100,6 +187,11 @@ export const ChatList = memo(function ChatList() {
           ))
         )}
       </List>
+
+      <UserSearchDialog
+        open={userSearchOpen}
+        onClose={() => setUserSearchOpen(false)}
+      />
     </Box>
   );
 });

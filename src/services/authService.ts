@@ -2,8 +2,9 @@ import api from './api';
 import { LoginCredentials, RegisterCredentials, User } from '@/types';
 
 interface AuthResponse {
-  user: User;
+  message: string;
   accessToken: string;
+  user: User;
 }
 
 export const authService = {
@@ -19,7 +20,7 @@ export const authService = {
   },
 
   async refreshToken(): Promise<{ accessToken: string }> {
-    const response = await api.post<{ accessToken: string }>('/auth/refresh');
+    const response = await api.post<{ accessToken: string }>('/auth/refresh-token');
     return response.data;
   },
 
@@ -28,7 +29,7 @@ export const authService = {
   },
 
   async getMe(): Promise<User> {
-    const response = await api.get<User>('/auth/me');
-    return response.data;
+    const response = await api.get<{ user: User }>('/users/profile');
+    return response.data.user;
   },
 };

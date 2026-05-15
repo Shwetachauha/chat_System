@@ -21,7 +21,7 @@ export const ChatListItem = memo(function ChatListItem({
   const userId = currentUser?.id || '';
   const chatName = getChatName(chat, userId);
   const chatAvatar = getChatAvatar(chat, userId);
-  const otherUserId = chat.type === 'private' ? getOtherUserId(chat, userId) : '';
+  const otherUserId = !chat.isGroupChat ? getOtherUserId(chat, userId) : '';
   const isOnline = useAppSelector(selectIsUserOnline(otherUserId));
 
   return (
@@ -31,21 +31,22 @@ export const ChatListItem = memo(function ChatListItem({
       sx={{
         px: 2,
         py: 1.5,
-        borderRadius: 2,
-        mx: 1,
-        mb: 0.5,
-        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        borderRadius: '14px',
+        mx: 0.5,
+        mb: 0.8,
+        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         '&.Mui-selected': {
-          bgcolor: 'rgba(99, 102, 241, 0.08)',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            left: 0,
-            top: '20%',
-            bottom: '20%',
-            width: 3,
-            borderRadius: 2,
-            bgcolor: 'primary.main',
+          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
+          border: '1px solid rgba(102, 126, 234, 0.3)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
+          },
+        },
+        '&:not(.Mui-selected)': {
+          border: '1px solid transparent',
+          '&:hover': {
+            bgcolor: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
           },
         },
         '&:active': {
@@ -58,7 +59,7 @@ export const ChatListItem = memo(function ChatListItem({
         name={chatName}
         src={chatAvatar}
         size={50}
-        online={chat.type === 'private' ? isOnline : undefined}
+        online={!chat.isGroupChat ? isOnline : undefined}
       />
 
       <ListItemText
@@ -69,21 +70,21 @@ export const ChatListItem = memo(function ChatListItem({
               variant="subtitle2"
               noWrap
               fontWeight={chat.unreadCount > 0 ? 700 : 500}
-              sx={{ color: 'text.primary' }}
+              sx={{ color: 'rgba(255,255,255,0.9)' }}
             >
               {chatName}
             </Typography>
-            {chat.lastMessage && (
+            {chat.latestMessage && (
               <Typography
                 variant="caption"
                 sx={{
                   flexShrink: 0,
                   ml: 1,
-                  color: chat.unreadCount > 0 ? 'primary.main' : 'text.secondary',
+                  color: chat.unreadCount > 0 ? '#a78bfa' : 'rgba(255,255,255,0.4)',
                   fontWeight: chat.unreadCount > 0 ? 600 : 400,
                 }}
               >
-                {formatTime(chat.lastMessage.createdAt)}
+                {formatTime(chat.latestMessage.createdAt)}
               </Typography>
             )}
           </Box>
@@ -92,14 +93,20 @@ export const ChatListItem = memo(function ChatListItem({
           <Box display="flex" justifyContent="space-between" alignItems="center" mt={0.3}>
             <Typography
               variant="body2"
-              color="text.secondary"
               noWrap
               sx={{
+                color: 'rgba(255,255,255,0.45)',
                 fontWeight: chat.unreadCount > 0 ? 500 : 400,
                 fontSize: '0.82rem',
               }}
             >
-              {chat.lastMessage?.content || 'No messages yet'}
+              {chat.latestMessage
+                ? chat.latestMessage.type === 'IMAGE'
+                  ? '📷 Photo'
+                  : chat.latestMessage.type === 'FILE'
+                    ? '📎 ' + (chat.latestMessage.content || 'File')
+                    : chat.latestMessage.content
+                : 'No messages yet'}
             </Typography>
             {chat.unreadCount > 0 && (
               <Box
@@ -108,7 +115,7 @@ export const ChatListItem = memo(function ChatListItem({
                   minWidth: 20,
                   height: 20,
                   borderRadius: '10px',
-                  bgcolor: 'primary.main',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

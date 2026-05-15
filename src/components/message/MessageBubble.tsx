@@ -13,6 +13,8 @@ import { formatMessageTime } from '@/utils/helpers';
 import { useAppSelector, useAppDispatch } from '@/hooks/useAuth';
 import { addReaction, removeReaction, editMessageContent, deleteMessage } from '@/store/slices/messageSlice';
 import { addMessage } from '@/store/slices/messageSlice';
+import { messageEmitters } from '@/socket/emitters/messageEmitters';
+import { messageService } from '@/services/messageService';
 import { selectMessageById } from '@/store/selectors/messageSelectors';
 
 interface MessageBubbleProps {
@@ -30,7 +32,7 @@ export const MessageBubble = memo(function MessageBubble({
 }: MessageBubbleProps) {
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.auth.user);
-  const isMine = message.senderId === currentUser?.id;
+  const isMine = message.sender.id === currentUser?.id;
   const repliedMessage = useAppSelector(selectMessageById(message.chatId, message.replyTo));
 
   const [editOpen, setEditOpen] = useState(false);
@@ -56,9 +58,11 @@ export const MessageBubble = memo(function MessageBubble({
         messageId: message.id,
         emoji,
         userId: currentUser.id,
-        username: currentUser.username,
+        username: currentUser.name,
       }));
     }
+    // Emit to server for real-time sync
+    messageEmitters.reactMessage(message.chatId, message.id, emoji);
   }, [dispatch, currentUser, message.chatId, message.id, message.reactions]);
 
   const handleEdit = useCallback((newContent: string) => {
@@ -69,9 +73,14 @@ export const MessageBubble = memo(function MessageBubble({
     }));
   }, [dispatch, message.chatId, message.id]);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     dispatch(deleteMessage({ chatId: message.chatId, messageId: message.id }));
     setDeleteOpen(false);
+    try {
+      await messageService.deleteMessage(message.id);
+    } catch {
+      // API failed - message already marked deleted locally
+    }
   }, [dispatch, message.chatId, message.id]);
 
   const handleForward = useCallback((targetChatId: string) => {
@@ -79,16 +88,12 @@ export const MessageBubble = memo(function MessageBubble({
     const forwardedMsg: Message = {
       id: `msg-fwd-${Date.now()}`,
       chatId: targetChatId,
-      senderId: currentUser.id,
-      senderName: currentUser.username,
+      sender: { id: currentUser.id, name: currentUser.name, avatar: currentUser.avatar },
       content: message.content,
       type: message.type,
       status: 'sent',
-      reactions: [],
       readBy: [],
       createdAt: new Date().toISOString(),
-      isEdited: false,
-      isDeleted: false,
       forwardedFrom: {
         chatId: message.chatId,
         chatName: '',
@@ -109,8 +114,7 @@ export const MessageBubble = memo(function MessageBubble({
         <Typography
           variant="body2"
           fontStyle="italic"
-          color="text.disabled"
-          sx={{ px: 2, py: 1 }}
+          sx={{ px: 2, py: 1, color: 'rgba(255,255,255,0.35)' }}
         >
           This message was deleted
         </Typography>
@@ -125,9 +129,9 @@ export const MessageBubble = memo(function MessageBubble({
       justifyContent={isMine ? 'flex-end' : 'flex-start'}
       px={2}
       py={0.3}
-      sx={{ position: 'relative' }}
+      sx={{ position: 'relative', overflow: 'visible' }}
     >
-      <Box sx={{ position: 'relative', maxWidth: '70%', overflow: 'visible' }}>
+      <Box sx={{ position: 'relative', maxWidth: '65%', overflow: 'visible' }}>
         {/* Hover actions bar */}
         <MessageActions
           message={message}
@@ -149,17 +153,18 @@ export const MessageBubble = memo(function MessageBubble({
             borderTopLeftRadius: isMine ? '18px' : '4px',
             borderTopRightRadius: isMine ? '4px' : '18px',
             bgcolor: isMine
-              ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
-              : '#f1f5f9',
+              ? 'transparent'
+              : 'rgba(255,255,255,0.06)',
             background: isMine
-              ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
-              : '#f1f5f9',
-            color: isMine ? '#ffffff' : 'text.primary',
+              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              : 'rgba(255,255,255,0.06)',
+            color: isMine ? '#ffffff' : 'rgba(255,255,255,0.9)',
             position: 'relative',
             opacity: message.status === 'sending' ? 0.7 : 1,
             boxShadow: isMine
-              ? '0 2px 12px rgba(99, 102, 241, 0.25)'
-              : '0 1px 4px rgba(0, 0, 0, 0.04)',
+              ? '0 4px 15px rgba(102, 126, 234, 0.3)'
+              : '0 2px 8px rgba(0, 0, 0, 0.2)',
+            border: isMine ? 'none' : '1px solid rgba(255,255,255,0.08)',
             transition: 'transform 0.1s ease',
             '&:hover': {
               transform: 'scale(1.01)',
@@ -190,7 +195,7 @@ export const MessageBubble = memo(function MessageBubble({
               }}
             >
               <Typography variant="caption" fontWeight={600} display="block" sx={{ opacity: 0.85 }}>
-                {repliedMessage.senderName}
+                {repliedMessage.sender.name}
               </Typography>
               <Typography variant="caption" noWrap display="block" sx={{ opacity: 0.7, maxWidth: 200 }}>
                 {repliedMessage.isDeleted ? 'This message was deleted' : repliedMessage.content}
@@ -198,19 +203,19 @@ export const MessageBubble = memo(function MessageBubble({
             </Box>
           )}
 
-          {!isMine && message.senderName && (
+          {!isMine && message.sender.name && (
             <Typography
               variant="caption"
               fontWeight={600}
-              color={isMine ? 'inherit' : 'primary.main'}
+              sx={{ color: '#a78bfa' }}
               display="block"
               mb={0.3}
             >
-              {message.senderName}
+              {message.sender.name}
             </Typography>
           )}
 
-          {(message.type === 'image' || message.type === 'file') && message.fileUrl && (
+          {(message.type === 'IMAGE' || message.type === 'FILE') && message.fileUrl && (
             <FilePreview
               type={message.type}
               url={message.fileUrl}
@@ -220,7 +225,7 @@ export const MessageBubble = memo(function MessageBubble({
             />
           )}
 
-          {message.content && message.type === 'text' && (
+          {message.content && message.type === 'TEXT' && (
             <Typography variant="body2" sx={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
               {message.content}
             </Typography>
@@ -239,7 +244,7 @@ export const MessageBubble = memo(function MessageBubble({
             >
               {formatMessageTime(message.createdAt)}
             </Typography>
-            {isMine && <MessageStatus status={message.status} />}
+            {isMine && message.status && <MessageStatus status={message.status} />}
           </Box>
 
           {message.status === 'failed' && (

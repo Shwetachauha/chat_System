@@ -3,7 +3,8 @@ import { Box, CircularProgress } from '@mui/material';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAuth';
 import { selectMessagesByChatId, selectMessagesLoading, selectHasMoreMessages } from '@/store/selectors/messageSelectors';
-import { fetchMessages } from '@/store/slices/messageSlice';
+import { fetchMessages, addMessage } from '@/store/slices/messageSlice';
+import { messageService } from '@/services/messageService';
 import { MessageBubble } from './MessageBubble';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -24,17 +25,23 @@ export function MessageList({ chatId, onRetry, onDelete, onReply }: MessageListP
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const isAtBottomRef = useRef(true);
 
-  // Auto-scroll to bottom for new messages
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
+
+  // Poll for new messages every 10s as fallback for unreliable socket delivery
   useEffect(() => {
-    if (isAtBottomRef.current && messages.length > 0) {
-      setTimeout(() => {
-        virtuosoRef.current?.scrollToIndex({
-          index: messages.length - 1,
-          behavior: 'smooth',
-        });
-      }, 50);
-    }
-  }, [messages.length]);
+    if (!accessToken) return;
+    const interval = setInterval(async () => {
+      try {
+        const response = await messageService.getMessages({ chatId, limit: 20 });
+        for (const msg of response.messages) {
+          dispatch(addMessage(msg));
+        }
+      } catch {
+        // silent fail - don't trigger logout
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [chatId, dispatch, accessToken]);
 
   const loadOlderMessages = useCallback(() => {
     if (!hasMore || isLoading) return;
@@ -59,7 +66,7 @@ export function MessageList({ chatId, onRetry, onDelete, onReply }: MessageListP
   }
 
   return (
-    <Box flex={1} overflow="hidden">
+    <Box flex={1} minHeight={0} overflow="hidden" sx={{ '& ::-webkit-scrollbar': { display: 'none' }, '& *': { scrollbarWidth: 'none' } }}>
       <Virtuoso
         ref={virtuosoRef}
         data={messages as Message[]}

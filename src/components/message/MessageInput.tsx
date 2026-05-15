@@ -20,7 +20,6 @@ import {
 import { useTyping } from '@/hooks/useTyping';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useMessages } from '@/hooks/useMessages';
-import { getFileType } from '@/utils/fileValidation';
 import { sanitizeInput } from '@/utils/sanitize';
 import { CameraCaptureDialog } from './CameraCaptureDialog';
 import { Message } from '@/types';
@@ -40,7 +39,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { startTyping, stopTyping } = useTyping(chatId);
-  const { isUploading, progress, error: uploadError, uploadFile, resetUpload } = useFileUpload();
+  const { isUploading, progress, error: uploadError, resetUpload } = useFileUpload();
   const { sendMessage } = useMessages(chatId);
 
   const EMOJI_LIST = [
@@ -65,19 +64,16 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
     const replyId = replyToMessage?.id;
 
     if (selectedFile) {
-      const result = await uploadFile(selectedFile);
-      if (result) {
-        const type = getFileType(selectedFile.type);
-        sendMessage(trimmedContent || selectedFile.name, type, result.url, result.fileName, replyId);
-      }
+      const fileType = selectedFile.type.startsWith('image/') ? 'IMAGE' : 'FILE';
+      sendMessage(trimmedContent || selectedFile.name, fileType, selectedFile, replyId);
       clearFile();
     } else {
-      sendMessage(sanitizeInput(trimmedContent), 'text', undefined, undefined, replyId);
+      sendMessage(sanitizeInput(trimmedContent), 'TEXT', undefined, replyId);
     }
 
     setContent('');
     onCancelReply?.();
-  }, [content, selectedFile, stopTyping, uploadFile, sendMessage, replyToMessage, onCancelReply]);
+  }, [content, selectedFile, stopTyping, sendMessage, replyToMessage, onCancelReply]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -117,7 +113,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
   };
 
   return (
-    <Box borderTop={1} borderColor="divider" bgcolor="background.paper">
+    <Box sx={{ borderTop: '1px solid rgba(200,180,255,0.2)', bgcolor: '#e8dff5' }}>
       {/* Reply preview */}
       {replyToMessage && (
         <Box px={2} pt={1}>
@@ -135,7 +131,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
             <Reply sx={{ fontSize: 18, color: 'primary.main' }} />
             <Box flex={1} overflow="hidden">
               <Typography variant="caption" fontWeight={600} color="primary.main" display="block">
-                {replyToMessage.senderName}
+                {replyToMessage.sender.name}
               </Typography>
               <Typography variant="body2" noWrap color="text.secondary">
                 {replyToMessage.content}
@@ -188,7 +184,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
             size="small"
             onClick={(e) => setEmojiAnchor(e.currentTarget)}
             disabled={isUploading}
-            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea' } }}
           >
             <EmojiEmotions fontSize="small" />
           </IconButton>
@@ -197,7 +193,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
             size="small"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea' } }}
           >
             <AttachFile fontSize="small" />
           </IconButton>
@@ -206,7 +202,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
             size="small"
             onClick={() => imageInputRef.current?.click()}
             disabled={isUploading}
-            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea' } }}
           >
             <ImageIcon fontSize="small" />
           </IconButton>
@@ -215,7 +211,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
             size="small"
             onClick={() => setCameraOpen(true)}
             disabled={isUploading}
-            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea' } }}
           >
             <CameraAlt fontSize="small" />
           </IconButton>
@@ -234,12 +230,14 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: '20px',
-              backgroundColor: '#f1f5f9',
-              '& fieldset': { borderColor: 'transparent' },
-              '&:hover fieldset': { borderColor: '#e2e8f0' },
-              '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
-              '&.Mui-focused': { backgroundColor: '#ffffff' },
+              backgroundColor: '#ffffff',
+              color: '#1a1a2e',
+              '& fieldset': { borderColor: 'rgba(102,126,234,0.2)' },
+              '&:hover fieldset': { borderColor: 'rgba(102,126,234,0.4)' },
+              '&.Mui-focused fieldset': { borderColor: '#667eea', borderWidth: 1.5 },
             },
+            '& .MuiInputBase-input, & textarea': { color: '#1a1a2e' },
+            '& input::placeholder, & textarea::placeholder': { color: 'rgba(0,0,0,0.4)', opacity: 1 },
           }}
         />
 
@@ -251,10 +249,10 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
             height: 38,
             background: (!content.trim() && !selectedFile) || isUploading
               ? 'transparent'
-              : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-            color: (!content.trim() && !selectedFile) || isUploading ? 'text.disabled' : 'white',
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: (!content.trim() && !selectedFile) || isUploading ? 'rgba(255,255,255,0.3)' : 'white',
             '&:hover': {
-              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              background: 'linear-gradient(135deg, #5a6fe0 0%, #6a3d96 100%)',
               transform: 'scale(1.05)',
             },
             transition: 'all 0.2s ease',

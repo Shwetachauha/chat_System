@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Chat } from '@/types';
+import { Chat, LatestMessage } from '@/types';
 import { chatService } from '@/services/chatService';
 import { MOCK_MODE } from '@/mocks/config';
 import { mockChats } from '@/mocks/mockData';
@@ -32,9 +32,22 @@ export const fetchChats = createAsyncThunk(
 
 export const createPrivateChat = createAsyncThunk(
   'chat/createPrivate',
-  async (userId: string, { rejectWithValue }) => {
+  async (data: { userId: string; user: { id: string; name: string; avatar?: string; email?: string } }, { rejectWithValue, getState }) => {
     try {
-      return await chatService.createPrivateChat(userId);
+      const chat = await chatService.createPrivateChat(data.userId);
+      // Ensure chatWith is populated (some backends don't return it on create)
+      if (!chat.chatWith || !chat.chatWith.name) {
+        const currentUserId = (getState() as { auth: { user: { id: string } | null } }).auth.user?.id;
+        // Try to derive from members first
+        const otherMember = chat.members?.find((m) => m.id !== currentUserId);
+        chat.chatWith = otherMember || {
+          id: data.user.id,
+          name: data.user.name,
+          avatar: data.user.avatar,
+          email: data.user.email,
+        };
+      }
+      return chat;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(err.response?.data?.message || 'Failed to create chat');
@@ -44,9 +57,9 @@ export const createPrivateChat = createAsyncThunk(
 
 export const createGroupChat = createAsyncThunk(
   'chat/createGroup',
-  async (data: { name: string; participantIds: string[] }, { rejectWithValue }) => {
+  async (data: { groupName: string; members: string[]; groupIcon?: string }, { rejectWithValue }) => {
     try {
-      return await chatService.createGroupChat(data.name, data.participantIds);
+      return await chatService.createGroupChat(data.groupName, data.members, data.groupIcon);
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(err.response?.data?.message || 'Failed to create group');
@@ -61,10 +74,10 @@ const chatSlice = createSlice({
     setActiveChat(state, action: PayloadAction<Chat | null>) {
       state.activeChat = action.payload;
     },
-    updateLastMessage(state, action: PayloadAction<{ chatId: string; message: Chat['lastMessage'] }>) {
+    updateLastMessage(state, action: PayloadAction<{ chatId: string; latestMessage: LatestMessage }>) {
       const chat = state.chats.find((c) => c.id === action.payload.chatId);
       if (chat) {
-        chat.lastMessage = action.payload.message;
+        chat.latestMessage = action.payload.latestMessage;
         chat.updatedAt = new Date().toISOString();
       }
     },
@@ -86,10 +99,10 @@ const chatSlice = createSlice({
         state.chats.unshift(action.payload);
       }
     },
-    updateChatParticipants(state, action: PayloadAction<{ chatId: string; participants: Chat['participants'] }>) {
+    updateChatMembers(state, action: PayloadAction<{ chatId: string; members: Chat['members'] }>) {
       const chat = state.chats.find((c) => c.id === action.payload.chatId);
       if (chat) {
-        chat.participants = action.payload.participants;
+        chat.members = action.payload.members;
       }
     },
     sortChats(state) {
@@ -130,7 +143,7 @@ export const {
   incrementUnread,
   resetUnread,
   addChat,
-  updateChatParticipants,
+  updateChatMembers,
   sortChats,
 } = chatSlice.actions;
 export default chatSlice.reducer;

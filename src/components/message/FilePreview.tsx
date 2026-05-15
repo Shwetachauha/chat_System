@@ -4,7 +4,7 @@ import { InsertDriveFile, Download } from '@mui/icons-material';
 import { formatFileSize } from '@/utils/helpers';
 
 interface FilePreviewProps {
-  type: 'image' | 'file' | 'video' | 'audio';
+  type: string;
   url: string;
   fileName?: string;
   fileSize?: number;
@@ -18,18 +18,22 @@ export const FilePreview = memo(function FilePreview({
   fileSize,
   thumbnailUrl,
 }: FilePreviewProps) {
-  if (type === 'image') {
+  const normalizedType = type.toLowerCase();
+  const isImage = normalizedType === 'image' || /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(url || '') || /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(fileName || '');
+
+  if (isImage) {
     return (
-      <Box mb={0.5}>
+      <Box mb={0.5} sx={{ maxWidth: 280, borderRadius: 2, overflow: 'hidden' }}>
         <img
           src={thumbnailUrl || url}
           alt={fileName || 'Image'}
           style={{
-            maxWidth: '100%',
+            width: '100%',
             maxHeight: 300,
             borderRadius: 8,
             objectFit: 'cover',
             cursor: 'pointer',
+            display: 'block',
           }}
           onClick={() => window.open(url, '_blank')}
           loading="lazy"
@@ -38,7 +42,7 @@ export const FilePreview = memo(function FilePreview({
     );
   }
 
-  if (type === 'video') {
+  if (normalizedType === 'video') {
     return (
       <Box mb={0.5}>
         <video
@@ -51,7 +55,7 @@ export const FilePreview = memo(function FilePreview({
     );
   }
 
-  if (type === 'audio') {
+  if (normalizedType === 'audio') {
     return (
       <Box mb={0.5}>
         <audio src={url} controls style={{ width: '100%' }} preload="metadata" />

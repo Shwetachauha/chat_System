@@ -15,9 +15,13 @@ class SocketManager {
   private currentChatId: string | null = null;
 
   connect(token: string): void {
-    if (this.socket?.connected) return;
+    if (this.socket?.connected) {
+      console.log('[Socket] Already connected, skipping');
+      return;
+    }
 
     const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    console.log('[Socket] Connecting to:', socketUrl);
 
     this.socket = io(socketUrl, {
       auth: { token },
@@ -29,6 +33,11 @@ class SocketManager {
       timeout: 20000,
     });
 
+    // Catch-all listener for debugging
+    this.socket.onAny((event, ...args) => {
+      console.log('[Socket] Event:', event, args);
+    });
+
     this.setupConnectionHandlers();
     this.registerEventHandlers();
   }
@@ -37,6 +46,7 @@ class SocketManager {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
+      console.log('[Socket] Connected, id:', this.socket?.id);
       store.dispatch(setConnected(true));
       store.dispatch(setReconnecting(false));
       this.reconnectAttempts = 0;
@@ -45,12 +55,10 @@ class SocketManager {
       if (this.currentChatId) {
         this.joinChat(this.currentChatId);
       }
-
-      // Emit user online
-      this.socket?.emit('user_online');
     });
 
     this.socket.on('disconnect', (reason) => {
+      console.log('[Socket] Disconnected, reason:', reason);
       store.dispatch(setConnected(false));
       if (reason === 'io server disconnect') {
         // Server forced disconnect - likely auth failure
@@ -103,12 +111,16 @@ class SocketManager {
   }
 
   joinChat(chatId: string): void {
-    if (!this.socket?.connected) return;
+    if (!this.socket?.connected) {
+      console.log('[Socket] joinChat failed - not connected, chatId:', chatId);
+      return;
+    }
     // Leave previous chat
     if (this.currentChatId && this.currentChatId !== chatId) {
       this.leaveChat(this.currentChatId);
     }
     this.currentChatId = chatId;
+    console.log('[Socket] Joining chat:', chatId);
     this.socket.emit('join_chat', chatId);
   }
 
@@ -139,7 +151,6 @@ class SocketManager {
 
   disconnect(): void {
     if (this.socket) {
-      this.socket.emit('user_offline');
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;

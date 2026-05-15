@@ -1,11 +1,11 @@
 export interface User {
   id: string;
-  username: string;
+  name: string;
   email: string;
   avatar?: string;
-  isOnline: boolean;
-  lastSeen: string | null;
-  createdAt: string;
+  isOnline?: boolean;
+  lastSeen?: string | null;
+  createdAt?: string;
 }
 
 export interface UserProfile extends User {

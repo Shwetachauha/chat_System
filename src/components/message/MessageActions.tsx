@@ -47,33 +47,38 @@ export const MessageActions = memo(function MessageActions({
       className="message-actions"
       sx={{
         position: 'absolute',
-        top: -36,
+        top: '50%',
+        transform: 'translateY(-50%)',
         [isMine ? 'left' : 'right']: 0,
+        [isMine ? 'marginLeft' : 'marginRight']: '-8px',
+        [isMine ? 'translateX' : 'translateX']: '-100%',
+        ...(isMine ? { left: 0, transform: 'translate(-100%, -50%)' } : { right: 0, transform: 'translate(100%, -50%)' }),
         display: 'none',
-        bgcolor: 'background.paper',
-        borderRadius: 3,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-        border: '1px solid',
-        borderColor: 'divider',
+        bgcolor: '#1e1e36',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+        border: '1px solid rgba(255,255,255,0.1)',
         zIndex: 100,
-        p: 0.4,
+        p: 0.5,
         '.message-row:hover &': { display: 'flex' },
+        flexDirection: 'column',
+        gap: 0.3,
       }}
     >
-      {/* Quick reactions */}
-      <Box display="flex" alignItems="center">
+      {/* Quick reactions row */}
+      <Box display="flex" alignItems="center" gap={0.2}>
         {QUICK_REACTIONS.map((emoji) => (
           <Box
             key={emoji}
             onClick={() => onReact(emoji)}
             sx={{
               cursor: 'pointer',
-              fontSize: 16,
+              fontSize: 15,
               px: 0.4,
-              py: 0.2,
-              borderRadius: 1,
-              '&:hover': { bgcolor: 'action.hover', transform: 'scale(1.3)' },
-              transition: 'transform 0.1s',
+              py: 0.3,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)', transform: 'scale(1.3)' },
+              transition: 'all 0.15s',
             }}
           >
             {emoji}
@@ -81,36 +86,36 @@ export const MessageActions = memo(function MessageActions({
         ))}
 
         <Tooltip title="More reactions">
-          <IconButton size="small" onClick={(e) => setEmojiAnchor(e.currentTarget)} sx={{ p: 0.3 }}>
-            <EmojiEmotions sx={{ fontSize: 16 }} />
+          <IconButton size="small" onClick={(e) => setEmojiAnchor(e.currentTarget)} sx={{ p: 0.3, color: 'rgba(255,255,255,0.6)' }}>
+            <EmojiEmotions sx={{ fontSize: 15 }} />
           </IconButton>
         </Tooltip>
       </Box>
 
-      {/* Action buttons */}
-      <Box display="flex" alignItems="center" borderLeft={1} borderColor="divider" ml={0.5} pl={0.5}>
-        <Tooltip title="Reply">
-          <IconButton size="small" onClick={onReply} sx={{ p: 0.3 }}>
+      {/* Action buttons row */}
+      <Box display="flex" alignItems="center" gap={0.2} borderTop="1px solid rgba(255,255,255,0.08)" pt={0.3}>
+        {/* <Tooltip title="Reply">
+          <IconButton size="small" onClick={onReply} sx={{ p: 0.4, color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#a78bfa', bgcolor: 'rgba(167,139,250,0.1)' } }}>
             <Reply sx={{ fontSize: 16 }} />
           </IconButton>
         </Tooltip>
 
         <Tooltip title="Forward">
-          <IconButton size="small" onClick={onForward} sx={{ p: 0.3 }}>
+          <IconButton size="small" onClick={onForward} sx={{ p: 0.4, color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#667eea', bgcolor: 'rgba(102,126,234,0.1)' } }}>
             <Forward sx={{ fontSize: 16 }} />
           </IconButton>
-        </Tooltip>
+        </Tooltip> */}
 
-        {isMine && user?.id === message.senderId && (
+        {isMine && user?.id === message.sender.id && (
           <>
             <Tooltip title="Edit">
-              <IconButton size="small" onClick={onEdit} sx={{ p: 0.3 }}>
+              <IconButton size="small" onClick={onEdit} sx={{ p: 0.4, color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#4ade80', bgcolor: 'rgba(74,222,128,0.1)' } }}>
                 <Edit sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>
 
             <Tooltip title="Delete">
-              <IconButton size="small" onClick={onDelete} sx={{ p: 0.3, color: 'error.main' }}>
+              <IconButton size="small" onClick={onDelete} sx={{ p: 0.4, color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#f87171', bgcolor: 'rgba(248,113,113,0.1)' } }}>
                 <Delete sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>

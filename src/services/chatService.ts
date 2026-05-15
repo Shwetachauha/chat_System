@@ -1,34 +1,37 @@
 import api from './api';
 import { Chat } from '@/types';
 
+interface ChatsResponse {
+  chats: Chat[];
+}
+
+interface ChatResponse {
+  chat: Chat;
+}
+
 export const chatService = {
   async getChats(): Promise<Chat[]> {
-    const response = await api.get<Chat[]>('/chats');
-    return response.data;
-  },
-
-  async getChatById(chatId: string): Promise<Chat> {
-    const response = await api.get<Chat>(`/chats/${chatId}`);
-    return response.data;
+    const response = await api.get<ChatsResponse>('/chats');
+    return response.data.chats;
   },
 
   async createPrivateChat(userId: string): Promise<Chat> {
-    const response = await api.post<Chat>('/chats/private', { userId });
-    return response.data;
+    const response = await api.post<ChatResponse>('/chats', { userId });
+    return response.data.chat;
   },
 
-  async createGroupChat(name: string, participantIds: string[]): Promise<Chat> {
-    const response = await api.post<Chat>('/chats/group', { name, participantIds });
-    return response.data;
+  async createGroupChat(groupName: string, members: string[], groupIcon?: string): Promise<Chat> {
+    const response = await api.post<ChatResponse>('/chats/group', { groupName, members, groupIcon });
+    return response.data.chat;
   },
 
   async addGroupMember(chatId: string, userId: string): Promise<Chat> {
-    const response = await api.post<Chat>(`/chats/${chatId}/members`, { userId });
-    return response.data;
+    const response = await api.put<ChatResponse>('/chats/group/add', { chatId, userId });
+    return response.data.chat;
   },
 
   async removeGroupMember(chatId: string, userId: string): Promise<Chat> {
-    const response = await api.delete<Chat>(`/chats/${chatId}/members/${userId}`);
-    return response.data;
+    const response = await api.put<ChatResponse>('/chats/group/remove', { chatId, userId });
+    return response.data.chat;
   },
 };

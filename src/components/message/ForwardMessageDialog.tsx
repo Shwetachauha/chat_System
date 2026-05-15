@@ -28,8 +28,10 @@ export function ForwardMessageDialog({ open, messageContent, onClose, onForward 
   const chats = useAppSelector((state) => state.chat.chats);
 
   const filteredChats = chats.filter(
-    (chat: Chat) =>
-      (chat.name || '').toLowerCase().includes(search.toLowerCase())
+    (chat: Chat) => {
+      const name = chat.isGroupChat ? (chat.groupName || '') : (chat.chatWith?.name || '');
+      return name.toLowerCase().includes(search.toLowerCase());
+    }
   );
 
   const handleSelect = (chatId: string) => {
@@ -62,11 +64,11 @@ export function ForwardMessageDialog({ open, messageContent, onClose, onForward 
             {filteredChats.map((chat: Chat) => (
               <ListItemButton key={chat.id} onClick={() => handleSelect(chat.id)}>
                 <ListItemAvatar>
-                  <Avatar src={chat.avatar}>{(chat.name || 'C')[0]}</Avatar>
+                  <Avatar src={chat.isGroupChat ? undefined : chat.chatWith?.avatar}>{(chat.isGroupChat ? (chat.groupName || 'G') : (chat.chatWith?.name || 'C'))[0]}</Avatar>
                 </ListItemAvatar>
                 <ListItemText
-                  primary={chat.name || 'Chat'}
-                  secondary={chat.type === 'group' ? 'Group' : 'Direct'}
+                  primary={chat.isGroupChat ? chat.groupName : chat.chatWith?.name || 'Chat'}
+                  secondary={chat.isGroupChat ? 'Group' : 'Direct'}
                 />
               </ListItemButton>
             ))}

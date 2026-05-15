@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,10 +13,14 @@ import {
   ListItemText,
   CircularProgress,
   Typography,
+  IconButton,
+  Badge,
 } from '@mui/material';
+import { CameraAlt } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAuth';
 import { setCreateGroupDialogOpen } from '@/store/slices/uiSlice';
 import { createGroupChat } from '@/store/slices/chatSlice';
+import { uploadService } from '@/services/uploadService';
 import { userService } from '@/services/userService';
 import { User } from '@/types';
 import { Avatar } from '@/components/common/Avatar';
@@ -26,10 +30,28 @@ export function CreateGroupDialog() {
   const dispatch = useAppDispatch();
   const isOpen = useAppSelector((state) => state.ui.createGroupDialogOpen);
   const [groupName, setGroupName] = useState('');
+  const [groupIcon, setGroupIcon] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    setIsUploading(true);
+    try {
+      const result = await uploadService.uploadFile(file);
+      setGroupIcon(result.url);
+    } catch {
+      // upload failed silently
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSearch = debounce(async (query: string) => {
     if (!query.trim()) {
@@ -50,6 +72,7 @@ export function CreateGroupDialog() {
   const handleClose = () => {
     dispatch(setCreateGroupDialogOpen(false));
     setGroupName('');
+    setGroupIcon(null);
     setSearchQuery('');
     setSearchResults([]);
     setSelectedUsers([]);
@@ -58,8 +81,9 @@ export function CreateGroupDialog() {
   const handleCreate = () => {
     if (!groupName.trim() || selectedUsers.length === 0) return;
     dispatch(createGroupChat({
-      name: groupName.trim(),
-      participantIds: selectedUsers.map((u) => u.id),
+      groupName: groupName.trim(),
+      members: selectedUsers.map((u) => u.id),
+      ...(groupIcon && { groupIcon }),
     }));
     handleClose();
   };
@@ -77,6 +101,34 @@ export function CreateGroupDialog() {
       <DialogTitle>Create Group Chat</DialogTitle>
       <DialogContent>
         <Box display="flex" flexDirection="column" gap={2} mt={1}>
+          {/* Group Icon Upload */}
+          <Box display="flex" justifyContent="center">
+            <Badge
+              overlap="circular"
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              badgeContent={
+                <IconButton
+                  size="small"
+                  onClick={() => fileInputRef.current?.click()}
+                  sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' }, width: 28, height: 28 }}
+                >
+                  <CameraAlt sx={{ fontSize: 16 }} />
+                </IconButton>
+              }
+            >
+              {isUploading ? (
+                <Box sx={{ width: 72, height: 72, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover' }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : groupIcon ? (
+                <Box component="img" src={groupIcon} sx={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <Avatar name={groupName || 'G'} size={72} />
+              )}
+            </Badge>
+            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleIconUpload} />
+          </Box>
+
           <TextField
             label="Group Name"
             value={groupName}
@@ -101,7 +153,7 @@ export function CreateGroupDialog() {
               {selectedUsers.map((user) => (
                 <Chip
                   key={user.id}
-                  label={user.username}
+                  label={user.name}
                   onDelete={() => toggleUser(user)}
                   size="small"
                   color="primary"
@@ -124,8 +176,8 @@ export function CreateGroupDialog() {
                 onClick={() => toggleUser(user)}
                 selected={selectedUsers.some((u) => u.id === user.id)}
               >
-                <Avatar name={user.username} src={user.avatar} size={32} />
-                <ListItemText primary={user.username} secondary={user.email} sx={{ ml: 1.5 }} />
+                <Avatar name={user.name} src={user.avatar} size={32} />
+                <ListItemText primary={user.name} secondary={user.email} sx={{ ml: 1.5 }} />
               </ListItemButton>
             ))}
           </List>

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface TypingState {
-  typingUsers: Record<string, { userId: string; username: string }[]>;
+  typingUsers: Record<string, { userId: string }[]>;
 }
 
 const initialState: TypingState = {
@@ -12,14 +12,14 @@ const typingSlice = createSlice({
   name: 'typing',
   initialState,
   reducers: {
-    setUserTyping(state, action: PayloadAction<{ chatId: string; userId: string; username: string }>) {
-      const { chatId, userId, username } = action.payload;
+    setUserTyping(state, action: PayloadAction<{ chatId: string; userId: string }>) {
+      const { chatId, userId } = action.payload;
       if (!state.typingUsers[chatId]) {
         state.typingUsers[chatId] = [];
       }
       const exists = state.typingUsers[chatId].find((u) => u.userId === userId);
       if (!exists) {
-        state.typingUsers[chatId].push({ userId, username });
+        state.typingUsers[chatId].push({ userId });
       }
     },
     removeUserTyping(state, action: PayloadAction<{ chatId: string; userId: string }>) {

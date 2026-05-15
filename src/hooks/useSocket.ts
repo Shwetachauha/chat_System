@@ -12,6 +12,7 @@ export function useSocket() {
 
   useEffect(() => {
     if (MOCK_MODE) return; // Skip socket in mock mode
+    console.log('[useSocket] isAuthenticated:', isAuthenticated, 'hasToken:', !!accessToken, 'connectedRef:', connectedRef.current);
     if (isAuthenticated && accessToken && !connectedRef.current) {
       socketManager.connect(accessToken);
       connectedRef.current = true;

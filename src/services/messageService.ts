@@ -4,34 +4,41 @@ import { Message, PaginationParams } from '@/types';
 interface MessagesResponse {
   messages: Message[];
   hasMore: boolean;
-  cursor: string | null;
+  nextCursor: string | null;
+}
+
+interface SendMessageResponse {
+  message: Message;
 }
 
 export const messageService = {
-  async getMessages(params: PaginationParams): Promise<MessagesResponse> {
+  async getMessages(params: PaginationParams): Promise<{ messages: Message[]; hasMore: boolean; cursor: string | null }> {
     const { chatId, cursor, limit = 50 } = params;
     const queryParams = new URLSearchParams({ limit: String(limit) });
     if (cursor) queryParams.append('cursor', cursor);
 
     const response = await api.get<MessagesResponse>(
-      `/chats/${chatId}/messages?${queryParams.toString()}`
+      `/messages/${chatId}?${queryParams.toString()}`
     );
-    return response.data;
+    return {
+      messages: response.data.messages,
+      hasMore: response.data.hasMore,
+      cursor: response.data.nextCursor,
+    };
   },
 
-  async sendMessage(chatId: string, formData: FormData): Promise<Message> {
-    const response = await api.post<Message>(`/chats/${chatId}/messages`, formData, {
+  async sendMessage(formData: FormData): Promise<Message> {
+    const response = await api.post<SendMessageResponse>('/messages', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data;
+    return response.data.message;
   },
 
-  async deleteMessage(chatId: string, messageId: string): Promise<void> {
-    await api.delete(`/chats/${chatId}/messages/${messageId}`);
+  async markRead(chatId: string): Promise<void> {
+    await api.put(`/messages/read/${chatId}`);
   },
 
-  async editMessage(chatId: string, messageId: string, content: string): Promise<Message> {
-    const response = await api.patch<Message>(`/chats/${chatId}/messages/${messageId}`, { content });
-    return response.data;
+  async deleteMessage(messageId: string): Promise<void> {
+    await api.delete(`/messages/${messageId}`);
   },
 };

@@ -28,7 +28,7 @@ export function MainLayout() {
   }, [dispatch]);
 
   return (
-    <Box display="flex" height="100vh" overflow="hidden">
+    <Box display="flex" height="100vh" overflow="hidden" sx={{ bgcolor: '#1a1a2e' }}>
       <Sidebar />
       <Box flex={1} display="flex" flexDirection="column" overflow="hidden">
         <Outlet />

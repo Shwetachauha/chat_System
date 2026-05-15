@@ -10,6 +10,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { Email, Visibility, VisibilityOff, LockOpen } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAuth';
 import { login, clearError } from '@/store/slices/authSlice';
 
@@ -19,15 +20,19 @@ interface LoginFormProps {
 
 export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { isLoading, error } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
-    dispatch(login({ email: email.trim(), password }));
+    const result = await dispatch(login({ email: email.trim(), password }));
+    if (login.fulfilled.match(result)) {
+      navigate('/');
+    }
   };
 
   return (

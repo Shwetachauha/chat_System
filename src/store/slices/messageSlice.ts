@@ -130,14 +130,14 @@ const messageSlice = createSlice({
         chatMessages.entities[messageId].status = status;
       }
     },
-    updateReadReceipt(state, action: PayloadAction<{ chatId: string; messageId: string; userId: string; readAt: string }>) {
-      const { chatId, messageId, userId, readAt } = action.payload;
+    updateReadReceipt(state, action: PayloadAction<{ chatId: string; messageId: string; userId: string }>) {
+      const { chatId, messageId, userId } = action.payload;
       const chatMessages = state.messagesByChatId[chatId];
       if (chatMessages?.entities[messageId]) {
         const msg = chatMessages.entities[messageId];
         const existingReceipt = msg.readBy.find((r) => r.userId === userId);
         if (!existingReceipt) {
-          msg.readBy.push({ userId, readAt });
+          msg.readBy.push({ userId });
         }
         msg.status = 'seen';
       }
@@ -171,6 +171,7 @@ const messageSlice = createSlice({
       const chatMessages = state.messagesByChatId[chatId];
       if (chatMessages?.entities[messageId]) {
         const msg = chatMessages.entities[messageId];
+        if (!msg.reactions) msg.reactions = [];
         const existing = msg.reactions.find((r) => r.emoji === emoji && r.userId === userId);
         if (!existing) {
           msg.reactions.push({ emoji, userId, username });
@@ -182,7 +183,9 @@ const messageSlice = createSlice({
       const chatMessages = state.messagesByChatId[chatId];
       if (chatMessages?.entities[messageId]) {
         const msg = chatMessages.entities[messageId];
-        msg.reactions = msg.reactions.filter((r) => !(r.emoji === emoji && r.userId === userId));
+        if (msg.reactions) {
+          msg.reactions = msg.reactions.filter((r) => !(r.emoji === emoji && r.userId === userId));
+        }
       }
     },
     clearChatMessages(state, action: PayloadAction<string>) {
@@ -211,14 +214,15 @@ const messageSlice = createSlice({
         chatMessages.isLoading = false;
         chatMessages.hasMore = hasMore;
         chatMessages.cursor = cursor;
-        // Prepend older messages (they come newest first from API)
-        const newMessages = messages.reverse();
-        for (const msg of newMessages) {
+        // Prepend older messages before existing ones (API returns chronological order)
+        const newIds: string[] = [];
+        for (const msg of messages) {
           if (!chatMessages.entities[msg.id]) {
-            chatMessages.ids.unshift(msg.id);
+            newIds.push(msg.id);
             chatMessages.entities[msg.id] = msg;
           }
         }
+        chatMessages.ids = [...newIds, ...chatMessages.ids];
       })
       .addCase(fetchMessages.rejected, (state, action) => {
         const chatId = action.meta.arg.chatId;

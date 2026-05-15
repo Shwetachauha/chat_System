@@ -6,16 +6,20 @@ export interface Reaction {
   username: string;
 }
 
+export interface MessageSender {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
 export interface Message {
   id: string;
   tempId?: string;
   chatId: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar?: string;
+  sender: MessageSender;
   content: string;
   type: MessageType;
-  status: MessageStatus;
+  status?: MessageStatus;
   fileUrl?: string;
   fileName?: string;
   fileSize?: number;
@@ -27,17 +31,17 @@ export interface Message {
     chatName: string;
     messageId: string;
   };
-  reactions: Reaction[];
-  readBy: ReadReceipt[];
+  reactions?: Reaction[];
+  readBy: { userId: string }[];
   createdAt: string;
   updatedAt?: string;
-  isEdited: boolean;
-  isDeleted: boolean;
+  isEdited?: boolean;
+  isDeleted?: boolean;
 }
 
 export interface ReadReceipt {
   userId: string;
-  readAt: string;
+  readAt?: string;
 }
 
 export interface MessagesByChatId {

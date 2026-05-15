@@ -26,18 +26,19 @@ export function ChatWindow({ chat, onBack }: ChatWindowProps) {
     return <EmptyState variant="no-chat-selected" />;
   }
 
-  const otherUserId = chat.type === 'private' ? getOtherUserId(chat, currentUser?.id || '') : null;
+  const otherUserId = !chat.isGroupChat ? getOtherUserId(chat, currentUser?.id || '') : null;
 
   return (
     <Box
       display="flex"
       flexDirection="column"
-      height="100%"
+      flex={1}
+      minHeight={0}
+      overflow="hidden"
       sx={{
-        bgcolor: '#f8fafc',
-        backgroundImage: `radial-gradient(circle at 25px 25px, rgba(99, 102, 241, 0.03) 2%, transparent 0%),
-                          radial-gradient(circle at 75px 75px, rgba(139, 92, 246, 0.02) 2%, transparent 0%)`,
-        backgroundSize: '100px 100px',
+        bgcolor: '#1a1a2e',
+        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.04) 0%, transparent 50%),
+                          radial-gradient(circle at 80% 50%, rgba(118, 75, 162, 0.04) 0%, transparent 50%)`,
       }}
     >      <ChatHeader
         chat={chat}

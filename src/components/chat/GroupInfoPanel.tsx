@@ -27,16 +27,16 @@ interface GroupInfoPanelProps {
 
 export function GroupInfoPanel({ open, chat, onClose, onUpdateName }: GroupInfoPanelProps) {
   const [editing, setEditing] = useState(false);
-  const [newName, setNewName] = useState(chat?.name || '');
+  const [newName, setNewName] = useState(chat?.groupName || '');
   const currentUser = useAppSelector((state) => state.auth.user);
   const onlineUsers = useAppSelector((state) => state.presence.onlineUsers);
 
-  if (!chat || chat.type !== 'group') return null;
+  if (!chat || !chat.isGroupChat) return null;
 
-  const isAdmin = chat.admin === currentUser?.id;
+  const isAdmin = chat.groupAdmin?.id === currentUser?.id;
 
   const handleSaveName = () => {
-    if (newName.trim() && newName.trim() !== chat.name) {
+    if (newName.trim() && newName.trim() !== chat.groupName) {
       onUpdateName?.(newName.trim());
     }
     setEditing(false);
@@ -75,11 +75,11 @@ export function GroupInfoPanel({ open, chat, onClose, onUpdateName }: GroupInfoP
             </Box>
           ) : (
             <Box display="flex" alignItems="center" gap={1}>
-              <Typography variant="h6">{chat.name}</Typography>
+              <Typography variant="h6">{chat.groupName}</Typography>
               {isAdmin && (
                 <IconButton
                   size="small"
-                  onClick={() => { setNewName(chat.name || ''); setEditing(true); }}
+                  onClick={() => { setNewName(chat.groupName || ''); setEditing(true); }}
                 >
                   <Edit fontSize="small" />
                 </IconButton>
@@ -88,7 +88,7 @@ export function GroupInfoPanel({ open, chat, onClose, onUpdateName }: GroupInfoP
           )}
 
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            {chat.participants?.length || 0} members
+            {chat.members?.length || 0} members
           </Typography>
           {isAdmin && <Chip label="Admin" size="small" color="primary" sx={{ mt: 0.5 }} />}
         </Box>
@@ -108,21 +108,21 @@ export function GroupInfoPanel({ open, chat, onClose, onUpdateName }: GroupInfoP
         {/* Members */}
         <Box sx={{ p: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
-            Members ({chat.participants?.length || 0})
+            Members ({chat.members?.length || 0})
           </Typography>
           <List dense disablePadding>
-            {chat.participants?.map((member) => (
+            {chat.members?.map((member) => (
               <ListItem key={member.id} disablePadding sx={{ py: 0.5 }}>
                 <ListItemAvatar>
                   <Avatar src={member.avatar} sx={{ width: 36, height: 36 }}>
-                    {member.username?.[0]}
+                    {member.name?.[0]}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
                   primary={
                     <Box display="flex" alignItems="center" gap={0.5}>
-                      {member.username}
-                      {chat.admin === member.id && (
+                      {member.name}
+                      {chat.groupAdmin?.id === member.id && (
                         <Chip label="Admin" size="small" sx={{ height: 18, fontSize: 10 }} />
                       )}
                     </Box>

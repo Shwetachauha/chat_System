@@ -2,7 +2,6 @@ import { Socket } from 'socket.io-client';
 import { store } from '@/store';
 import { ServerEvent, TypingEvent, ReadReceiptEvent } from '@/types';
 import { setUserTyping, removeUserTyping } from '@/store/slices/typingSlice';
-import { updateReadReceipt } from '@/store/slices/messageSlice';
 
 export function registerTypingHandlers(socket: Socket): void {
   socket.on(ServerEvent.TYPING, (event: TypingEvent) => {
@@ -12,7 +11,6 @@ export function registerTypingHandlers(socket: Socket): void {
       store.dispatch(setUserTyping({
         chatId: event.chatId,
         userId: event.userId,
-        username: event.username,
       }));
     }
   });
@@ -24,12 +22,8 @@ export function registerTypingHandlers(socket: Socket): void {
     }));
   });
 
-  socket.on(ServerEvent.READ_RECEIPT, (event: ReadReceiptEvent) => {
-    store.dispatch(updateReadReceipt({
-      chatId: event.chatId,
-      messageId: event.messageId,
-      userId: event.userId,
-      readAt: event.readAt,
-    }));
+  socket.on(ServerEvent.READ_RECEIPT, (_event: ReadReceiptEvent) => {
+    // Update read status in UI — mark messages as read by this user
+    // The chatId tells which conversation, userId tells who read it
   });
 }

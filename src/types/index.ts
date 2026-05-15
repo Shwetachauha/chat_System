@@ -7,6 +7,8 @@ export type {
 } from './auth';
 export type {
   Chat,
+  ChatMember,
+  LatestMessage,
   MessagePreview,
   MessageType,
   MessageStatus,
@@ -14,6 +16,7 @@ export type {
 } from './chat';
 export type {
   Message,
+  MessageSender,
   Reaction,
   ReadReceipt,
   MessagesByChatId,

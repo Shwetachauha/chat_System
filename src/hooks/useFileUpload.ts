@@ -25,14 +25,9 @@ export function useFileUpload() {
     setUploadState({ isUploading: true, progress: 0, error: null });
 
     try {
-      const isImage = file.type.startsWith('image/');
-      const response = isImage
-        ? await uploadService.uploadImage(file, (progress) => {
-            setUploadState((prev) => ({ ...prev, progress }));
-          })
-        : await uploadService.uploadFile(file, (progress) => {
-            setUploadState((prev) => ({ ...prev, progress }));
-          });
+      const response = await uploadService.uploadFile(file, (progress: number) => {
+        setUploadState((prev) => ({ ...prev, progress }));
+      });
 
       setUploadState({ isUploading: false, progress: 100, error: null });
       return response;

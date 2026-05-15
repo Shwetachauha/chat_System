@@ -1,16 +1,29 @@
-import { User } from './user';
+export interface ChatMember {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+  isOnline?: boolean;
+  lastSeen?: string | null;
+}
+
+export interface LatestMessage {
+  content: string;
+  type: MessageType;
+  sender: { name: string; avatar?: string };
+  createdAt: string;
+}
 
 export interface Chat {
   id: string;
-  type: 'private' | 'group';
-  name?: string;
-  avatar?: string;
-  participants: User[];
-  lastMessage: MessagePreview | null;
+  isGroupChat: boolean;
+  chatWith: ChatMember | null;
+  groupName: string | null;
+  groupAdmin: { id: string; name: string } | null;
+  members: ChatMember[];
+  latestMessage: LatestMessage | null;
   unreadCount: number;
-  createdAt: string;
   updatedAt: string;
-  admin?: string;
 }
 
 export interface MessagePreview {
@@ -21,7 +34,7 @@ export interface MessagePreview {
   type: MessageType;
 }
 
-export type MessageType = 'text' | 'image' | 'file' | 'video' | 'audio' | 'system';
+export type MessageType = 'TEXT' | 'IMAGE' | 'FILE';
 
 export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'seen' | 'failed';
 

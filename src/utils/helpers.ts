@@ -36,21 +36,18 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-export function getChatName(chat: import('@/types').Chat, currentUserId: string): string {
-  if (chat.type === 'group') return chat.name || 'Group Chat';
-  const otherUser = chat.participants.find((p) => p.id !== currentUserId);
-  return otherUser?.username || 'Unknown User';
+export function getChatName(chat: import('@/types').Chat, _currentUserId: string): string {
+  if (chat.isGroupChat) return chat.groupName || 'Group Chat';
+  return chat.chatWith?.name || 'Unknown User';
 }
 
-export function getChatAvatar(chat: import('@/types').Chat, currentUserId: string): string | undefined {
-  if (chat.type === 'group') return chat.avatar;
-  const otherUser = chat.participants.find((p) => p.id !== currentUserId);
-  return otherUser?.avatar;
+export function getChatAvatar(chat: import('@/types').Chat, _currentUserId: string): string | undefined {
+  if (chat.isGroupChat) return undefined;
+  return chat.chatWith?.avatar;
 }
 
-export function getOtherUserId(chat: import('@/types').Chat, currentUserId: string): string {
-  const otherUser = chat.participants.find((p) => p.id !== currentUserId);
-  return otherUser?.id || '';
+export function getOtherUserId(chat: import('@/types').Chat, _currentUserId: string): string {
+  return chat.chatWith?.id || '';
 }
 
 export function debounce<T extends (...args: string[]) => void>(fn: T, delay: number): T {

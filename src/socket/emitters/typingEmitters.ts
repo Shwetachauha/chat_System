@@ -3,10 +3,10 @@ import { ClientEvent } from '@/types';
 
 export const typingEmitters = {
   startTyping(chatId: string): void {
-    socketManager.emit(ClientEvent.TYPING_START, { chatId });
+    socketManager.emit(ClientEvent.TYPING, chatId);
   },
 
   stopTyping(chatId: string): void {
-    socketManager.emit(ClientEvent.TYPING_STOP, { chatId });
+    socketManager.emit(ClientEvent.STOP_TYPING, chatId);
   },
 };

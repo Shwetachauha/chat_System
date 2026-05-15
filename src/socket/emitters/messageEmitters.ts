@@ -1,26 +1,12 @@
 import { socketManager } from '../socketManager';
-import { ClientEvent, SendMessagePayload } from '@/types';
+import { ClientEvent } from '@/types';
 
 export const messageEmitters = {
-  sendMessage(payload: SendMessagePayload): void {
-    socketManager.emit(ClientEvent.SEND_MESSAGE, {
-      chatId: payload.chatId,
-      content: payload.content,
-      type: payload.type,
-      tempId: payload.tempId,
-      replyTo: payload.replyTo,
-    });
+  markRead(chatId: string): void {
+    socketManager.emit(ClientEvent.MARK_READ, { chatId });
   },
 
-  deleteMessage(chatId: string, messageId: string): void {
-    socketManager.emit(ClientEvent.DELETE_MESSAGE, { chatId, messageId });
-  },
-
-  editMessage(chatId: string, messageId: string, content: string): void {
-    socketManager.emit(ClientEvent.EDIT_MESSAGE, { chatId, messageId, content });
-  },
-
-  markRead(chatId: string, messageId: string): void {
-    socketManager.emit(ClientEvent.MARK_READ, { chatId, messageId });
+  reactMessage(chatId: string, messageId: string, emoji: string): void {
+    socketManager.emit(ClientEvent.REACT_MESSAGE, { chatId, messageId, emoji });
   },
 };
