@@ -18,17 +18,17 @@ interface RegisterFormProps {
 export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.auth);
-  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [localError, setLocalError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
 
-    if (!username.trim() || !email.trim() || !password || !confirmPassword) {
+    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
       setLocalError('All fields are required');
       return;
     }
@@ -43,7 +43,12 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       return;
     }
 
-    dispatch(register({ username: username.trim(), email: email.trim(), password, confirmPassword }));
+    try {
+      await dispatch(register({ name: name.trim(), email: email.trim(), password })).unwrap();
+      onSwitchToLogin();
+    } catch {
+      // error is handled by Redux state
+    }
   };
 
   return (
@@ -60,15 +65,15 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         )}
 
         <TextField
-          label="Username"
-          value={username}
+          label="Full Name"
+          value={name}
           onChange={(e) => {
-            setUsername(e.target.value);
+            setName(e.target.value);
             if (error) dispatch(clearError());
           }}
           fullWidth
           required
-          autoComplete="username"
+          autoComplete="name"
         />
 
         <TextField
