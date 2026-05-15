@@ -1,0 +1,90 @@
+import { useRef, useEffect, useCallback } from 'react';
+import { Box, CircularProgress } from '@mui/material';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { useAppDispatch, useAppSelector } from '@/hooks/useAuth';
+import { selectMessagesByChatId, selectMessagesLoading, selectHasMoreMessages } from '@/store/selectors/messageSelectors';
+import { fetchMessages } from '@/store/slices/messageSlice';
+import { MessageBubble } from './MessageBubble';
+import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { EmptyState } from '@/components/common/EmptyState';
+import { Message } from '@/types';
+
+interface MessageListProps {
+  chatId: string;
+  onRetry?: (messageId: string) => void;
+  onDelete?: (messageId: string) => void;
+}
+
+export function MessageList({ chatId, onRetry, onDelete }: MessageListProps) {
+  const dispatch = useAppDispatch();
+  const messages = useAppSelector(selectMessagesByChatId(chatId));
+  const isLoading = useAppSelector(selectMessagesLoading(chatId));
+  const hasMore = useAppSelector(selectHasMoreMessages(chatId));
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const isAtBottomRef = useRef(true);
+
+  // Auto-scroll to bottom for new messages
+  useEffect(() => {
+    if (isAtBottomRef.current && messages.length > 0) {
+      setTimeout(() => {
+        virtuosoRef.current?.scrollToIndex({
+          index: messages.length - 1,
+          behavior: 'smooth',
+        });
+      }, 50);
+    }
+  }, [messages.length]);
+
+  const loadOlderMessages = useCallback(() => {
+    if (!hasMore || isLoading) return;
+    const chatState = (
+      // Access cursor from store directly
+      undefined
+    );
+    void chatState;
+    dispatch(fetchMessages({ chatId, limit: 50 }));
+  }, [chatId, hasMore, isLoading, dispatch]);
+
+  const handleAtBottomChange = (atBottom: boolean) => {
+    isAtBottomRef.current = atBottom;
+  };
+
+  if (isLoading && messages.length === 0) {
+    return <LoadingSkeleton variant="messages" />;
+  }
+
+  if (messages.length === 0) {
+    return <EmptyState variant="no-messages" />;
+  }
+
+  return (
+    <Box flex={1} overflow="hidden">
+      <Virtuoso
+        ref={virtuosoRef}
+        data={messages as Message[]}
+        initialTopMostItemIndex={messages.length - 1}
+        followOutput="smooth"
+        atBottomStateChange={handleAtBottomChange}
+        startReached={loadOlderMessages}
+        overscan={200}
+        components={{
+          Header: () =>
+            hasMore ? (
+              <Box display="flex" justifyContent="center" py={2}>
+                {isLoading ? (
+                  <CircularProgress size={20} />
+                ) : null}
+              </Box>
+            ) : null,
+        }}
+        itemContent={(_index, message) => (
+          <MessageBubble
+            message={message}
+            onRetry={onRetry}
+            onDeleteFailed={onDelete}
+          />
+        )}
+      />
+    </Box>
+  );
+}
