@@ -27,9 +27,15 @@ export const messageService = {
     };
   },
 
-  async sendMessage(formData: FormData): Promise<Message> {
+  async sendMessage(formData: FormData, onProgress?: (progress: number) => void): Promise<Message> {
     const response = await api.post<SendMessageResponse>('/messages', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const pct = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(pct);
+        }
+      },
     });
     return response.data.message;
   },

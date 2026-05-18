@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   TextField,
@@ -13,6 +12,7 @@ import {
   Box,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
+import { AnimatedDialog } from '@/components/common/AnimatedDialog';
 import { Avatar } from '@/components/common/Avatar';
 import { userService } from '@/services/userService';
 import { useAppDispatch } from '@/hooks/useAuth';
@@ -74,7 +74,7 @@ export function UserSearchDialog({ open, onClose, onChatCreated }: UserSearchDia
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+    <AnimatedDialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogTitle>Search Users</DialogTitle>
       <DialogContent>
         <TextField
@@ -131,6 +131,6 @@ export function UserSearchDialog({ open, onClose, onChatCreated }: UserSearchDia
           </Typography>
         )}
       </DialogContent>
-    </Dialog>
+    </AnimatedDialog>
   );
 }

@@ -7,6 +7,7 @@ import {
   Typography,
   Paper,
   Popover,
+  LinearProgress,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -41,7 +42,7 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { startTyping, stopTyping } = useTyping(chatId);
   const { isUploading, progress, error: uploadError, resetUpload } = useFileUpload();
-  const { sendMessage } = useMessages(chatId);
+  const { sendMessage, uploadProgress, isUploading: isSendingFile } = useMessages(chatId);
 
   const EMOJI_LIST = [
     '😀', '😂', '😍', '🥰', '😎', '🤔', '😮', '😢',
@@ -186,6 +187,43 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
           {uploadError}
         </Typography>
       )}
+
+      {/* Upload progress bar */}
+      <AnimatePresence>
+        {isSendingFile && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Box px={2} pt={1}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <LinearProgress
+                  variant="determinate"
+                  value={uploadProgress}
+                  sx={{
+                    flex: 1,
+                    height: 6,
+                    borderRadius: 3,
+                    bgcolor: 'rgba(124,92,191,0.1)',
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 3,
+                      background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                    },
+                  }}
+                />
+                <Typography variant="caption" fontWeight={600} sx={{ color: '#7c5cbf', minWidth: 36 }}>
+                  {uploadProgress}%
+                </Typography>
+              </Box>
+              <Typography variant="caption" sx={{ color: 'rgba(0,0,0,0.5)', fontSize: '0.7rem' }}>
+                Uploading attachment...
+              </Typography>
+            </Box>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Input area */}
       <Box display="flex" alignItems="flex-end" gap={0.5} p={1.5} px={2}>

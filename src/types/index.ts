@@ -1,4 +1,5 @@
 export type { User, UserProfile } from './user';
+export type { CallLog } from './callLog';
 export type {
   AuthTokens,
   LoginCredentials,

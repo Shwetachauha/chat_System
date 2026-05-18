@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -17,6 +16,7 @@ import {
   Badge,
 } from '@mui/material';
 import { CameraAlt } from '@mui/icons-material';
+import { AnimatedDialog } from '@/components/common/AnimatedDialog';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAuth';
 import { setCreateGroupDialogOpen } from '@/store/slices/uiSlice';
 import { createGroupChat } from '@/store/slices/chatSlice';
@@ -104,7 +104,7 @@ export function CreateGroupDialog() {
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+    <AnimatedDialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Create Group Chat</DialogTitle>
       <DialogContent>
         <Box display="flex" flexDirection="column" gap={2} mt={1}>
@@ -206,6 +206,6 @@ export function CreateGroupDialog() {
           Create Group
         </Button>
       </DialogActions>
-    </Dialog>
+    </AnimatedDialog>
   );
 }

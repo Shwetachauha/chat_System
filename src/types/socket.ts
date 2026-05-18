@@ -33,6 +33,8 @@ export enum ServerEvent {
   CALL_ICE_CANDIDATE = 'call:ice-candidate',
   CALL_REJECTED = 'call:rejected',
   CALL_ENDED = 'call:ended',
+  CALL_LOG_CREATED = 'call_log_created',
+  CALL_LOG_UPDATED = 'call_log_updated',
 }
 
 export interface TypingEvent {

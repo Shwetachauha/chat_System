@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
   Button,
 } from '@mui/material';
+import { AnimatedDialog } from '@/components/common/AnimatedDialog';
 
 interface EditMessageDialogProps {
   open: boolean;
@@ -27,7 +27,7 @@ export function EditMessageDialog({ open, currentContent, onClose, onSave }: Edi
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <AnimatedDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Edit Message</DialogTitle>
       <DialogContent>
         <TextField
@@ -50,6 +50,6 @@ export function EditMessageDialog({ open, currentContent, onClose, onSave }: Edi
           Save
         </Button>
       </DialogActions>
-    </Dialog>
+    </AnimatedDialog>
   );
 }

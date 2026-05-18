@@ -10,7 +10,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import { Search, GroupAdd, ChatBubble, PersonSearch, People, Person, Forum } from '@mui/icons-material';
+import { Search, GroupAdd, ChatBubble, PersonSearch, People, Person, Forum, Phone } from '@mui/icons-material';
 import { useChat } from '@/hooks/useChat';
 import { useAppDispatch } from '@/hooks/useAuth';
 import { setCreateGroupDialogOpen } from '@/store/slices/uiSlice';
@@ -18,6 +18,7 @@ import { ChatListItem } from './ChatListItem';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { UserSearchDialog } from './UserSearchDialog';
+import { CallHistory } from '@/components/call/CallHistory';
 
 export const ChatList = memo(function ChatList() {
   const { chats, activeChat, isLoading, openChat } = useChat();
@@ -166,10 +167,15 @@ export const ChatList = memo(function ChatList() {
           <Tab icon={<ChatBubble sx={{ fontSize: 16 }} />} iconPosition="start" label="All" />
           <Tab icon={<Person sx={{ fontSize: 16 }} />} iconPosition="start" label="Direct" />
           <Tab icon={<People sx={{ fontSize: 16 }} />} iconPosition="start" label="Groups" />
+          <Tab icon={<Phone sx={{ fontSize: 16 }} />} iconPosition="start" label="Calls" />
         </Tabs>
       </Box>
 
-      {/* Chat list */}
+      {/* Call history tab */}
+      {activeTab === 3 ? (
+        <CallHistory />
+      ) : (
+      /* Chat list */
       <List sx={{ flex: 1, overflow: 'auto', px: 0.5, pt: 1, '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
         {filteredChats.length === 0 ? (
           <EmptyState variant="no-chats" />
@@ -184,6 +190,7 @@ export const ChatList = memo(function ChatList() {
           ))
         )}
       </List>
+      )}
 
       <UserSearchDialog
         open={userSearchOpen}

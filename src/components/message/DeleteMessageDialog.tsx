@@ -1,11 +1,11 @@
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
   Typography,
 } from '@mui/material';
+import { AnimatedDialog } from '@/components/common/AnimatedDialog';
 
 interface DeleteMessageDialogProps {
   open: boolean;
@@ -15,7 +15,7 @@ interface DeleteMessageDialogProps {
 
 export function DeleteMessageDialog({ open, onClose, onDelete }: DeleteMessageDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <AnimatedDialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Delete Message</DialogTitle>
       <DialogContent>
         <Typography>
@@ -28,6 +28,6 @@ export function DeleteMessageDialog({ open, onClose, onDelete }: DeleteMessageDi
           Delete
         </Button>
       </DialogActions>
-    </Dialog>
+    </AnimatedDialog>
   );
 }

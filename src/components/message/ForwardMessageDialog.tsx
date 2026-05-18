@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   List,
@@ -15,6 +14,7 @@ import {
 } from '@mui/material';
 import { useAppSelector } from '@/hooks/useAuth';
 import { Chat } from '@/types';
+import { AnimatedDialog } from '@/components/common/AnimatedDialog';
 
 interface ForwardMessageDialogProps {
   open: boolean;
@@ -40,7 +40,7 @@ export function ForwardMessageDialog({ open, messageContent, onClose, onForward 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <AnimatedDialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Forward Message</DialogTitle>
       <DialogContent>
         {/* Message preview */}
@@ -80,6 +80,6 @@ export function ForwardMessageDialog({ open, messageContent, onClose, onForward 
           </List>
         </Box>
       </DialogContent>
-    </Dialog>
+    </AnimatedDialog>
   );
 }

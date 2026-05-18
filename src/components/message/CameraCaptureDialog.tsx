@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -11,6 +10,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { CameraAlt, FlipCameraAndroid, Close } from '@mui/icons-material';
+import { AnimatedDialog } from '@/components/common/AnimatedDialog';
 
 interface CameraCaptureDialogProps {
   open: boolean;
@@ -139,7 +139,7 @@ export function CameraCaptureDialog({ open, onClose, onCapture }: CameraCaptureD
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <AnimatedDialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         Take Photo
         <IconButton onClick={handleClose} size="small">
@@ -251,6 +251,6 @@ export function CameraCaptureDialog({ open, onClose, onCapture }: CameraCaptureD
           </Button>
         )}
       </DialogActions>
-    </Dialog>
+    </AnimatedDialog>
   );
 }

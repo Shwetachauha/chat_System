@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from './useAuth';
 import { addPendingMessage, markMessageFailed, retryMessage, confirmMessage } from '@/store/slices/messageSlice';
 import { updateLastMessage } from '@/store/slices/chatSlice';
@@ -21,6 +21,8 @@ export function useMessages(chatId: string) {
     (state) => state.messages.messagesByChatId[chatId]?.hasMore ?? true
   );
   const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const sendMessage = useCallback(
     async (content: string, type: MessageType = 'TEXT', file?: File, replyTo?: string) => {
@@ -68,9 +70,16 @@ export function useMessages(chatId: string) {
         }
         if (file) {
           formData.append('file', file);
+          setIsUploading(true);
+          setUploadProgress(0);
         }
 
-        const confirmedMessage = await messageService.sendMessage(formData);
+        const confirmedMessage = await messageService.sendMessage(formData, file ? (pct) => {
+          setUploadProgress(pct);
+        } : undefined);
+
+        setIsUploading(false);
+        setUploadProgress(0);
 
         // Clear timeout and confirm
         clearTimeout(timeout);
@@ -90,6 +99,8 @@ export function useMessages(chatId: string) {
       } catch {
         clearTimeout(timeout);
         timeoutsRef.current.delete(tempId);
+        setIsUploading(false);
+        setUploadProgress(0);
         dispatch(markMessageFailed(tempId));
       }
     },
@@ -125,5 +136,7 @@ export function useMessages(chatId: string) {
     hasMore,
     sendMessage,
     retrySend,
+    uploadProgress,
+    isUploading,
   };
 }

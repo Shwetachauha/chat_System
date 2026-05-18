@@ -6,6 +6,7 @@ import presenceReducer from './slices/presenceSlice';
 import typingReducer from './slices/typingSlice';
 import uiReducer from './slices/uiSlice';
 import callReducer from './slices/callSlice';
+import callLogReducer from './slices/callLogSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     typing: typingReducer,
     ui: uiReducer,
     call: callReducer,
+    callLogs: callLogReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

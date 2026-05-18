@@ -3,6 +3,8 @@ import { store } from '@/store';
 import { ServerEvent } from '@/types/socket';
 import { setIncomingCall, endCall } from '@/store/slices/callSlice';
 import { CallType } from '@/store/slices/callSlice';
+import { prependCallLog, updateCallLog } from '@/store/slices/callLogSlice';
+import { CallLog } from '@/types/callLog';
 
 interface CallIncomingEvent {
   callerId: string;
@@ -89,5 +91,16 @@ export function registerCallHandlers(socket: Socket): void {
   socket.on(ServerEvent.CALL_ENDED, (event: CallEndedEvent) => {
     console.log('[CallHandler] call:ended by', event.by);
     store.dispatch(endCall());
+  });
+
+  // Call log events
+  socket.on(ServerEvent.CALL_LOG_CREATED, (event: { callLog: CallLog }) => {
+    console.log('[CallHandler] call_log_created', event.callLog);
+    store.dispatch(prependCallLog(event.callLog));
+  });
+
+  socket.on(ServerEvent.CALL_LOG_UPDATED, (event: { callLog: CallLog }) => {
+    console.log('[CallHandler] call_log_updated', event.callLog);
+    store.dispatch(updateCallLog(event.callLog));
   });
 }
