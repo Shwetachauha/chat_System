@@ -27,6 +27,9 @@ let remoteStream: MediaStream | null = null;
 // Buffer for incoming offer — held until user accepts
 let pendingOffer: { callerId: string; offer: RTCSessionDescriptionInit } | null = null;
 
+// Buffer ICE candidates that arrive before peerConnection is ready
+let pendingIceCandidates: RTCIceCandidateInit[] = [];
+
 // Subscribers for stream changes — CallScreen registers here
 type StreamListener = () => void;
 const streamListeners = new Set<StreamListener>();
@@ -47,6 +50,7 @@ export function getRemoteStream(): MediaStream | null {
 function cleanupCall() {
   console.log('[Call] Cleaning up');
   pendingOffer = null;
+  pendingIceCandidates = [];
   if (localStream) {
     localStream.getTracks().forEach((t) => t.stop());
     localStream = null;
@@ -56,7 +60,6 @@ function cleanupCall() {
     peerConnection = null;
   }
   remoteStream = null;
-  clearCallSignalHandlers();
   notifyStreamChange();
 }
 
@@ -114,12 +117,11 @@ export function useCall() {
     return pc;
   }, [dispatch]);
 
-  // Register WebRTC signal handlers from socket
+  // Register WebRTC signal handlers from socket — runs once on mount
   useEffect(() => {
     setCallSignalHandlers({
       onOffer: async (callerId: string, offer: RTCSessionDescriptionInit) => {
         console.log('[Call] Offer received from', callerId, '— buffering until user accepts');
-        // Buffer the offer — don't process until user clicks Accept
         pendingOffer = { callerId, offer };
       },
       onAnswer: async (answer: RTCSessionDescriptionInit) => {
@@ -127,6 +129,11 @@ export function useCall() {
         try {
           if (peerConnection) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            // Flush any buffered ICE candidates
+            for (const candidate of pendingIceCandidates) {
+              await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+            pendingIceCandidates = [];
           }
         } catch (err) {
           console.error('[Call] Error handling answer:', err);
@@ -134,8 +141,12 @@ export function useCall() {
       },
       onIceCandidate: async (candidate: RTCIceCandidateInit) => {
         try {
-          if (peerConnection) {
+          if (peerConnection && peerConnection.remoteDescription) {
             await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          } else {
+            // Buffer if remote description not set yet
+            console.log('[Call] Buffering ICE candidate (no remote desc yet)');
+            pendingIceCandidates.push(candidate);
           }
         } catch (err) {
           console.error('[Call] Error adding ICE candidate:', err);
@@ -146,7 +157,7 @@ export function useCall() {
     return () => {
       clearCallSignalHandlers();
     };
-  }, [callState.callType, createPeerConnection, dispatch, getMedia]);
+  }, []);
 
   // Initiate an outgoing call
   const initiateCall = useCallback(async (targetUserId: string, targetUserName: string, callType: CallType) => {
@@ -185,6 +196,11 @@ export function useCall() {
       await getMedia(callType);
       const pc = createPeerConnection(callerId);
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      // Flush any buffered ICE candidates
+      for (const candidate of pendingIceCandidates) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+      pendingIceCandidates = [];
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       callEmitters.sendAnswer(callerId, answer);
