@@ -1,6 +1,16 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, keyframes } from '@mui/material';
 import { ChatBubbleOutline, GroupOutlined, Forum } from '@mui/icons-material';
 import { memo } from 'react';
+
+const float = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+`;
 
 interface EmptyStateProps {
   variant?: 'no-chats' | 'no-messages' | 'no-chat-selected';
@@ -65,11 +75,12 @@ export const EmptyState = memo(function EmptyState({
           alignItems: 'center',
           justifyContent: 'center',
           mb: 1,
+          animation: `${float} 3s ease-in-out infinite`,
         }}
       >
         {getIcon()}
       </Box>
-      <Typography variant="h6" fontWeight={700} color="text.primary" textAlign="center">
+      <Typography variant="h6" fontWeight={700} color="text.primary" textAlign="center" sx={{ animation: `${pulse} 4s ease-in-out infinite` }}>
         {getMessage()}
       </Typography>
       <Typography variant="body2" color="text.secondary" textAlign="center" maxWidth={280}>

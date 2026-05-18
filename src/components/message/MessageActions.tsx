@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import { Box, IconButton, Popover, Tooltip } from '@mui/material';
+import { Box, IconButton, Popover, Tooltip, keyframes } from '@mui/material';
 import {
   EmojiEmotions,
   Reply,
@@ -9,6 +9,11 @@ import {
 } from '@mui/icons-material';
 import { Message } from '@/types';
 import { useAppSelector } from '@/hooks/useAuth';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(-50%) scale(0.9); }
+  to { opacity: 1; transform: translateY(-50%) scale(1); }
+`;
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
 
@@ -60,7 +65,7 @@ export const MessageActions = memo(function MessageActions({
         border: '1px solid rgba(255,255,255,0.1)',
         zIndex: 100,
         p: 0.5,
-        '.message-row:hover &': { display: 'flex' },
+        '.message-row:hover &': { display: 'flex', animation: `${fadeIn} 0.2s ease-out` },
         flexDirection: 'column',
         gap: 0.3,
       }}

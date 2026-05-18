@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Chat, Message } from '@/types';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { MessageList } from '@/components/message/MessageList';
@@ -29,18 +30,27 @@ export function ChatWindow({ chat, onBack }: ChatWindowProps) {
   const otherUserId = !chat.isGroupChat ? getOtherUserId(chat, currentUser?.id || '') : null;
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      flex={1}
-      minHeight={0}
-      overflow="hidden"
-      sx={{
-        bgcolor: '#1a1a2e',
-        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.04) 0%, transparent 50%),
-                          radial-gradient(circle at 80% 50%, rgba(118, 75, 162, 0.04) 0%, transparent 50%)`,
-      }}
-    >      <ChatHeader
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={chat.id}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}
+      >
+        <Box
+          display="flex"
+          flexDirection="column"
+          flex={1}
+          minHeight={0}
+          overflow="hidden"
+          sx={{
+            bgcolor: '#1a1a2e',
+            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.04) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 50%, rgba(118, 75, 162, 0.04) 0%, transparent 50%)`,
+          }}
+        >      <ChatHeader
         chat={chat}
         onBack={onBack}
         onOpenProfile={() => setProfileOpen(true)}
@@ -66,5 +76,7 @@ export function ChatWindow({ chat, onBack }: ChatWindowProps) {
         onClose={() => setGroupInfoOpen(false)}
       />
     </Box>
+      </motion.div>
+    </AnimatePresence>
   );
 }

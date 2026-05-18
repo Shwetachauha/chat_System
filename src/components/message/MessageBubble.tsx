@@ -1,5 +1,6 @@
 import { memo, useState, useCallback } from 'react';
 import { Box, Typography, IconButton, Paper } from '@mui/material';
+import { motion } from 'framer-motion';
 import { Replay, Delete, Forward as ForwardIcon } from '@mui/icons-material';
 import { Message } from '@/types';
 import { MessageStatus } from './MessageStatus';
@@ -105,32 +106,43 @@ export const MessageBubble = memo(function MessageBubble({
 
   if (message.isDeleted) {
     return (
-      <Box
-        display="flex"
-        justifyContent={isMine ? 'flex-end' : 'flex-start'}
-        px={2}
-        py={0.5}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
       >
-        <Typography
-          variant="body2"
-          fontStyle="italic"
-          sx={{ px: 2, py: 1, color: 'rgba(255,255,255,0.35)' }}
+        <Box
+          display="flex"
+          justifyContent={isMine ? 'flex-end' : 'flex-start'}
+          px={2}
+          py={0.5}
         >
-          This message was deleted
-        </Typography>
-      </Box>
+          <Typography
+            variant="body2"
+            fontStyle="italic"
+            sx={{ px: 2, py: 1, color: 'rgba(255,255,255,0.35)' }}
+          >
+            This message was deleted
+          </Typography>
+        </Box>
+      </motion.div>
     );
   }
 
   return (
-    <Box
-      className="message-row"
-      display="flex"
-      justifyContent={isMine ? 'flex-end' : 'flex-start'}
-      px={2}
-      py={0.3}
-      sx={{ position: 'relative', overflow: 'visible' }}
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
     >
+      <Box
+        className="message-row"
+        display="flex"
+        justifyContent={isMine ? 'flex-end' : 'flex-start'}
+        px={2}
+        py={0.3}
+        sx={{ position: 'relative', overflow: 'visible' }}
+      >
       <Box sx={{ position: 'relative', maxWidth: '65%', overflow: 'visible' }}>
         {/* Hover actions bar */}
         <MessageActions
@@ -293,5 +305,6 @@ export const MessageBubble = memo(function MessageBubble({
         onForward={handleForward}
       />
     </Box>
+    </motion.div>
   );
 });

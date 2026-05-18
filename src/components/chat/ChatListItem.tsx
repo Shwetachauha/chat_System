@@ -1,10 +1,13 @@
 import { memo } from 'react';
 import { Box, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { motion } from 'framer-motion';
 import { Chat } from '@/types';
 import { Avatar } from '@/components/common/Avatar';
 import { formatTime, getChatName, getChatAvatar, getOtherUserId } from '@/utils/helpers';
 import { useAppSelector } from '@/hooks/useAuth';
 import { selectIsUserOnline } from '@/store/selectors/presenceSelectors';
+
+const MotionListItem = motion.create(ListItemButton as any);
 
 interface ChatListItemProps {
   chat: Chat;
@@ -25,7 +28,12 @@ export const ChatListItem = memo(function ChatListItem({
   const isOnline = useAppSelector(selectIsUserOnline(otherUserId));
 
   return (
-    <ListItemButton
+    <MotionListItem
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
       selected={isActive}
       onClick={() => onSelect(chat)}
       sx={{
@@ -130,6 +138,6 @@ export const ChatListItem = memo(function ChatListItem({
           </Box>
         }
       />
-    </ListItemButton>
+    </MotionListItem>
   );
 });

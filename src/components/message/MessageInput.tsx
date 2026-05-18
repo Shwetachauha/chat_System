@@ -8,6 +8,7 @@ import {
   Paper,
   Popover,
 } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send,
   AttachFile,
@@ -145,31 +146,40 @@ export function MessageInput({ chatId, replyToMessage, onCancelReply }: MessageI
       )}
 
       {/* File preview */}
-      {selectedFile && (
-        <Box px={2} pt={1}>
-          <Paper variant="outlined" sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-            {previewUrl && (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }}
-              />
-            )}
-            <Box flex={1} overflow="hidden">
-              <Typography variant="body2" noWrap>
-                {selectedFile.name}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {(selectedFile.size / 1024).toFixed(1)} KB
-              </Typography>
+      <AnimatePresence>
+        {selectedFile && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Box px={2} pt={1}>
+              <Paper variant="outlined" sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                {previewUrl && (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }}
+                  />
+                )}
+                <Box flex={1} overflow="hidden">
+                  <Typography variant="body2" noWrap>
+                    {selectedFile.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {(selectedFile.size / 1024).toFixed(1)} KB
+                  </Typography>
+                </Box>
+                {isUploading && <CircularProgress size={20} variant="determinate" value={progress} />}
+                <IconButton size="small" onClick={clearFile}>
+                  <Close fontSize="small" />
+                </IconButton>
+              </Paper>
             </Box>
-            {isUploading && <CircularProgress size={20} variant="determinate" value={progress} />}
-            <IconButton size="small" onClick={clearFile}>
-              <Close fontSize="small" />
-            </IconButton>
-          </Paper>
-        </Box>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {uploadError && (
         <Typography variant="caption" color="error" px={2}>
