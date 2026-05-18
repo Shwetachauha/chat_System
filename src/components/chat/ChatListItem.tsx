@@ -1,11 +1,15 @@
-import { memo } from 'react';
-import { Box, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { memo, useState } from 'react';
+import { Box, ListItemButton, ListItemText, Typography, Menu, MenuItem, ListItemIcon } from '@mui/material';
+import { Delete } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Chat } from '@/types';
 import { Avatar } from '@/components/common/Avatar';
 import { formatTime, getChatName, getChatAvatar, getOtherUserId } from '@/utils/helpers';
-import { useAppSelector } from '@/hooks/useAuth';
+import { useAppSelector, useAppDispatch } from '@/hooks/useAuth';
 import { selectIsUserOnline } from '@/store/selectors/presenceSelectors';
+import { removeChat } from '@/store/slices/chatSlice';
+import { clearChatMessages } from '@/store/slices/messageSlice';
+import { DeleteChatDialog } from './DeleteChatDialog';
 
 const MotionListItem = motion.create(ListItemButton as any);
 
@@ -21,13 +25,31 @@ export const ChatListItem = memo(function ChatListItem({
   onSelect,
 }: ChatListItemProps) {
   const currentUser = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
   const userId = currentUser?.id || '';
   const chatName = getChatName(chat, userId);
   const chatAvatar = getChatAvatar(chat, userId);
   const otherUserId = !chat.isGroupChat ? getOtherUserId(chat, userId) : '';
   const isOnline = useAppSelector(selectIsUserOnline(otherUserId));
 
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number } | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ mouseX: e.clientX, mouseY: e.clientY });
+  };
+
+  const handleDeleteChat = () => {
+    dispatch(removeChat(chat.id));
+    dispatch(clearChatMessages(chat.id));
+    setDeleteOpen(false);
+    setContextMenu(null);
+  };
+
   return (
+    <>
     <MotionListItem
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -36,6 +58,7 @@ export const ChatListItem = memo(function ChatListItem({
       whileTap={{ scale: 0.97 }}
       selected={isActive}
       onClick={() => onSelect(chat)}
+      onContextMenu={handleContextMenu}
       sx={{
         px: 2,
         py: 1.5,
@@ -139,5 +162,23 @@ export const ChatListItem = memo(function ChatListItem({
         }
       />
     </MotionListItem>
+      <Menu
+        open={contextMenu !== null}
+        onClose={() => setContextMenu(null)}
+        anchorReference="anchorPosition"
+        anchorPosition={contextMenu ? { top: contextMenu.mouseY, left: contextMenu.mouseX } : undefined}
+      >
+        <MenuItem onClick={() => { setDeleteOpen(true); setContextMenu(null); }} sx={{ color: 'error.main' }}>
+          <ListItemIcon><Delete fontSize="small" color="error" /></ListItemIcon>
+          Delete Chat
+        </MenuItem>
+      </Menu>
+      <DeleteChatDialog
+        open={deleteOpen}
+        chatName={chatName}
+        onClose={() => setDeleteOpen(false)}
+        onDelete={handleDeleteChat}
+      />
+    </>
   );
 });

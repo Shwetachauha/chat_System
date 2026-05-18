@@ -117,6 +117,12 @@ const chatSlice = createSlice({
         state.activeChat = { ...state.activeChat, ...action.payload };
       }
     },
+    removeChat(state, action: PayloadAction<string>) {
+      state.chats = state.chats.filter((c) => c.id !== action.payload);
+      if (state.activeChat?.id === action.payload) {
+        state.activeChat = null;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -155,5 +161,6 @@ export const {
   updateChatMembers,
   sortChats,
   updateChat,
+  removeChat,
 } = chatSlice.actions;
 export default chatSlice.reducer;

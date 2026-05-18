@@ -1,13 +1,16 @@
-import { memo } from 'react';
-import { Box, Typography, IconButton, Tooltip } from '@mui/material';
-import { ArrowBack, MoreVert, Call, Videocam } from '@mui/icons-material';
+import { memo, useState } from 'react';
+import { Box, Typography, IconButton, Tooltip, Menu, MenuItem, ListItemIcon } from '@mui/material';
+import { ArrowBack, MoreVert, Call, Videocam, Delete } from '@mui/icons-material';
 import { Chat } from '@/types';
 import { Avatar } from '@/components/common/Avatar';
 import { LastSeen } from '@/components/presence/LastSeen';
 import { getChatName, getChatAvatar, getOtherUserId } from '@/utils/helpers';
-import { useAppSelector } from '@/hooks/useAuth';
+import { useAppSelector, useAppDispatch } from '@/hooks/useAuth';
 import { selectIsUserOnline } from '@/store/selectors/presenceSelectors';
 import { useCall } from '@/hooks/useCall';
+import { removeChat } from '@/store/slices/chatSlice';
+import { clearChatMessages } from '@/store/slices/messageSlice';
+import { DeleteChatDialog } from './DeleteChatDialog';
 
 interface ChatHeaderProps {
   chat: Chat;
@@ -18,6 +21,7 @@ interface ChatHeaderProps {
 
 export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile, onOpenGroupInfo }: ChatHeaderProps) {
   const currentUser = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
   const userId = currentUser?.id || '';
   const chatName = getChatName(chat, userId);
   const chatAvatar = getChatAvatar(chat, userId);
@@ -25,6 +29,17 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
   const isOnline = useAppSelector(selectIsUserOnline(otherUserId));
   const { initiateCall, callState } = useCall();
   const isInCall = callState.status !== 'idle';
+
+  // More menu state
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const handleDeleteChat = () => {
+    dispatch(removeChat(chat.id));
+    dispatch(clearChatMessages(chat.id));
+    setDeleteOpen(false);
+    setMenuAnchor(null);
+  };
 
   // Find the other user's name for 1-on-1 chats
   const otherUserName = !chat.isGroupChat
@@ -123,11 +138,28 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
         <Tooltip title="More">
           <IconButton
             size="small"
+            onClick={(e) => setMenuAnchor(e.currentTarget)}
             sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
           >
             <MoreVert fontSize="small" />
           </IconButton>
         </Tooltip>
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={() => setMenuAnchor(null)}
+        >
+          <MenuItem onClick={() => { setDeleteOpen(true); setMenuAnchor(null); }} sx={{ color: 'error.main' }}>
+            <ListItemIcon><Delete fontSize="small" color="error" /></ListItemIcon>
+            Delete Chat
+          </MenuItem>
+        </Menu>
+        <DeleteChatDialog
+          open={deleteOpen}
+          chatName={chatName}
+          onClose={() => setDeleteOpen(false)}
+          onDelete={handleDeleteChat}
+        />
       </Box>
     </Box>
   );

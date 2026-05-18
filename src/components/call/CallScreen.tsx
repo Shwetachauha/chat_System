@@ -23,8 +23,9 @@ export function CallScreen() {
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
 
-  // Attach streams to video elements whenever they change
+  // Attach streams to video/audio elements whenever they change
   useEffect(() => {
     function syncStreams() {
       const ls = getLocalStream();
@@ -37,6 +38,12 @@ export function CallScreen() {
       if (remoteVideoRef.current) {
         if (remoteVideoRef.current.srcObject !== rs) {
           remoteVideoRef.current.srcObject = rs;
+        }
+      }
+      // Always attach remote stream to audio element for voice playback
+      if (remoteAudioRef.current) {
+        if (remoteAudioRef.current.srcObject !== rs) {
+          remoteAudioRef.current.srcObject = rs;
         }
       }
     }
@@ -79,6 +86,8 @@ export function CallScreen() {
           : 'linear-gradient(135deg, #1a1a2e 0%, #2d1b69 50%, #1a1a2e 100%)',
       }}
     >
+      {/* Hidden audio element — plays remote audio for voice calls */}
+      <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
       {/* Remote video (full screen) */}
       {isVideo && (
         <Box sx={{ position: 'absolute', inset: 0 }}>
