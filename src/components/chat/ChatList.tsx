@@ -12,19 +12,24 @@ import {
 } from '@mui/material';
 import { Search, GroupAdd, ChatBubble, PersonSearch, People, Person, Forum, Phone } from '@mui/icons-material';
 import { useChat } from '@/hooks/useChat';
-import { useAppDispatch } from '@/hooks/useAuth';
+import { useAppDispatch, useAppSelector } from '@/hooks/useAuth';
 import { setCreateGroupDialogOpen } from '@/store/slices/uiSlice';
+import { clearAuth } from '@/store/slices/authSlice';
 import { ChatListItem } from './ChatListItem';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { UserSearchDialog } from './UserSearchDialog';
 import { CallHistory } from '@/components/call/CallHistory';
+import { MyProfileDialog } from './MyProfileDialog';
+import { Avatar } from '@/components/common/Avatar';
 
 export const ChatList = memo(function ChatList() {
   const { chats, activeChat, isLoading, openChat } = useChat();
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.auth.user);
   const [searchQuery, setSearchQuery] = useState('');
   const [userSearchOpen, setUserSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
   const filteredChats = useMemo(() => {
@@ -63,19 +68,18 @@ export const ChatList = memo(function ChatList() {
       >
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
           <Box display="flex" alignItems="center" gap={1.2}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '12px',
-                background: 'rgba(124,92,191,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Forum sx={{ fontSize: 20, color: '#7c5cbf' }} />
-            </Box>
+            <Tooltip title="My Profile">
+              <IconButton
+                onClick={() => setProfileOpen(true)}
+                sx={{ p: 0 }}
+              >
+                <Avatar
+                  name={currentUser?.name || 'User'}
+                  src={currentUser?.avatar}
+                  size={40}
+                />
+              </IconButton>
+            </Tooltip>
             <Typography variant="h5" fontWeight={800} sx={{ color: '#2d1b69', letterSpacing: '-0.03em' }}>
               Chats
             </Typography>
@@ -195,6 +199,15 @@ export const ChatList = memo(function ChatList() {
       <UserSearchDialog
         open={userSearchOpen}
         onClose={() => setUserSearchOpen(false)}
+      />
+
+      <MyProfileDialog
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        onLogout={() => {
+          setProfileOpen(false);
+          dispatch(clearAuth());
+        }}
       />
     </Box>
   );

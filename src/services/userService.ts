@@ -20,7 +20,7 @@ export const userService = {
     return response.data.user;
   },
 
-  async updateProfile(data: { name?: string; avatar?: string }): Promise<User> {
+  async updateProfile(data: { name?: string; avatar?: string; bio?: string }): Promise<User> {
     const response = await api.put<UserResponse>('/users/profile', data);
     return response.data.user;
   },
