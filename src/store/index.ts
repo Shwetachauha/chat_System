@@ -5,6 +5,7 @@ import messageReducer from './slices/messageSlice';
 import presenceReducer from './slices/presenceSlice';
 import typingReducer from './slices/typingSlice';
 import uiReducer from './slices/uiSlice';
+import callReducer from './slices/callSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     presence: presenceReducer,
     typing: typingReducer,
     ui: uiReducer,
+    call: callReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

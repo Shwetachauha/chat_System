@@ -42,7 +42,7 @@ export function getChatName(chat: import('@/types').Chat, _currentUserId: string
 }
 
 export function getChatAvatar(chat: import('@/types').Chat, _currentUserId: string): string | undefined {
-  if (chat.isGroupChat) return undefined;
+  if (chat.isGroupChat) return chat.groupAvatar;
   return chat.chatWith?.avatar;
 }
 

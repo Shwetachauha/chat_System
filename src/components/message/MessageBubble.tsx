@@ -72,12 +72,15 @@ export const MessageBubble = memo(function MessageBubble({
       messageId: message.id,
       content: newContent,
     }));
+    // Emit to server for real-time sync
+    messageEmitters.editMessage(message.id, newContent);
   }, [dispatch, message.chatId, message.id]);
 
   const handleDelete = useCallback(async () => {
     dispatch(deleteMessage({ chatId: message.chatId, messageId: message.id }));
     setDeleteOpen(false);
     try {
+      messageEmitters.deleteMessage(message.id);
       await messageService.deleteMessage(message.id);
     } catch {
       // API failed - message already marked deleted locally

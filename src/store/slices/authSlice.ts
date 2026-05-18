@@ -4,10 +4,34 @@ import { authService } from '@/services/authService';
 import { MOCK_MODE } from '@/mocks/config';
 import { mockUser } from '@/mocks/mockData';
 
+// Persist/restore auth from localStorage
+function loadAuthFromStorage(): { user: User | null; accessToken: string | null } {
+  try {
+    const stored = localStorage.getItem('auth');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return { user: parsed.user || null, accessToken: parsed.accessToken || null };
+    }
+  } catch {
+    // corrupted storage
+  }
+  return { user: null, accessToken: null };
+}
+
+function saveAuthToStorage(user: User | null, accessToken: string | null) {
+  if (user && accessToken) {
+    localStorage.setItem('auth', JSON.stringify({ user, accessToken }));
+  } else {
+    localStorage.removeItem('auth');
+  }
+}
+
+const persisted = MOCK_MODE ? { user: mockUser, accessToken: 'mock-token' } : loadAuthFromStorage();
+
 const initialState: AuthState = {
-  user: MOCK_MODE ? mockUser : null,
-  accessToken: MOCK_MODE ? 'mock-token' : null,
-  isAuthenticated: MOCK_MODE,
+  user: persisted.user,
+  accessToken: persisted.accessToken,
+  isAuthenticated: !!(persisted.user && persisted.accessToken),
   isLoading: false,
   error: null,
 };
@@ -61,15 +85,18 @@ const authSlice = createSlice({
   reducers: {
     setAccessToken(state, action: PayloadAction<string>) {
       state.accessToken = action.payload;
+      saveAuthToStorage(state.user, action.payload);
     },
     setUser(state, action: PayloadAction<User>) {
       state.user = action.payload;
+      saveAuthToStorage(action.payload, state.accessToken);
     },
     clearAuth(state) {
       state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
       state.error = null;
+      saveAuthToStorage(null, null);
     },
     clearError(state) {
       state.error = null;
@@ -86,6 +113,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.accessToken = action.payload.accessToken;
+        saveAuthToStorage(action.payload.user, action.payload.accessToken);
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
@@ -105,16 +133,19 @@ const authSlice = createSlice({
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;
         state.isAuthenticated = true;
+        saveAuthToStorage(state.user, action.payload.accessToken);
       })
       .addCase(refreshToken.rejected, (state) => {
         state.user = null;
         state.accessToken = null;
         state.isAuthenticated = false;
+        saveAuthToStorage(null, null);
       })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.accessToken = null;
         state.isAuthenticated = false;
+        saveAuthToStorage(null, null);
       });
   },
 });

@@ -6,6 +6,16 @@ export const messageEmitters = {
     socketManager.emit(ClientEvent.MARK_READ, { chatId });
   },
 
+  deleteMessage(messageId: string): void {
+    console.log('[MessageEmit] delete_message', { messageId });
+    socketManager.emit(ClientEvent.DELETE_MESSAGE, { messageId });
+  },
+
+  editMessage(messageId: string, content: string): void {
+    console.log('[MessageEmit] message:edit', { messageId, content });
+    socketManager.emit(ClientEvent.EDIT_MESSAGE, { messageId, content });
+  },
+
   reactMessage(chatId: string, messageId: string, emoji: string): void {
     socketManager.emit(ClientEvent.REACT_MESSAGE, { chatId, messageId, emoji });
   },

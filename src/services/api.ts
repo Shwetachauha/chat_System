@@ -34,7 +34,20 @@ const api = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const store = getStoreSync();
-    const token = store?.getState().auth.accessToken;
+    let token = store?.getState().auth.accessToken;
+
+    // Fallback: read from localStorage if store not yet resolved
+    if (!token) {
+      try {
+        const stored = localStorage.getItem('auth');
+        if (stored) {
+          token = JSON.parse(stored).accessToken;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -70,6 +83,7 @@ api.interceptors.response.use(
     const isRefreshRequest = originalRequest?.url?.includes('/auth/refresh-token');
 
     if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest) {
+      console.log('[API] 401 on', originalRequest?.url, '— attempting token refresh');
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -86,10 +100,12 @@ api.interceptors.response.use(
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
+        console.log('[API] Refresh token failed:', refreshError);
         processQueue(error);
         // Only clear auth if refresh token is truly invalid (not network errors)
         const refreshErr = refreshError as { response?: { status?: number } };
         if (refreshErr?.response?.status === 401 || refreshErr?.response?.status === 403) {
+          console.log('[API] Refresh token invalid — clearing auth');
           const store = await resolveStore();
           const { clearAuth } = await import('@/store/slices/authSlice');
           const { addToast } = await import('@/store/slices/uiSlice');

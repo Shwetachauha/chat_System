@@ -6,6 +6,8 @@ import { theme } from '@/theme';
 import { router } from '@/routes';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ToastContainer } from '@/components/common/Toast';
+import { IncomingCallDialog } from '@/components/call/IncomingCallDialog';
+import { CallScreen } from '@/components/call/CallScreen';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <ErrorBoundary>
           <RouterProvider router={router} />
           <ToastContainer />
+          <IncomingCallDialog />
+          <CallScreen />
         </ErrorBoundary>
       </ThemeProvider>
     </Provider>

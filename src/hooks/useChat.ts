@@ -5,6 +5,8 @@ import { fetchMessages } from '@/store/slices/messageSlice';
 import { selectSortedChats, selectActiveChat } from '@/store/selectors/chatSelectors';
 import { Chat } from '@/types';
 import { useSocket } from './useSocket';
+import { messageEmitters } from '@/socket/emitters/messageEmitters';
+import { messageService } from '@/services/messageService';
 
 export function useChat() {
   const dispatch = useAppDispatch();
@@ -31,6 +33,10 @@ export function useChat() {
 
       // Fetch messages if not loaded
       dispatch(fetchMessages({ chatId: chat.id, limit: 50 }));
+
+      // Mark messages as read (socket + REST)
+      messageEmitters.markRead(chat.id);
+      messageService.markRead(chat.id).catch(() => {});
     },
     [activeChat, dispatch, joinChat, leaveChat]
   );

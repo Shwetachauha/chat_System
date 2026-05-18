@@ -2,6 +2,7 @@ import { Socket } from 'socket.io-client';
 import { store } from '@/store';
 import { ServerEvent, TypingEvent, ReadReceiptEvent } from '@/types';
 import { setUserTyping, removeUserTyping } from '@/store/slices/typingSlice';
+import { updateReadReceipt } from '@/store/slices/messageSlice';
 
 export function registerTypingHandlers(socket: Socket): void {
   socket.on(ServerEvent.TYPING, (event: TypingEvent) => {
@@ -22,8 +23,25 @@ export function registerTypingHandlers(socket: Socket): void {
     }));
   });
 
-  socket.on(ServerEvent.READ_RECEIPT, (_event: ReadReceiptEvent) => {
-    // Update read status in UI — mark messages as read by this user
-    // The chatId tells which conversation, userId tells who read it
+  socket.on(ServerEvent.READ_RECEIPT, (event: ReadReceiptEvent) => {
+    console.log('[Socket] read_receipt:', event);
+    const state = store.getState();
+    // Don't process our own read receipts
+    if (event.userId === state.auth.user?.id) return;
+
+    const chatMessages = state.messages.messagesByChatId[event.chatId];
+    if (chatMessages) {
+      // Mark all messages in this chat as read by this user
+      chatMessages.ids.forEach((msgId) => {
+        const msg = chatMessages.entities[msgId];
+        if (msg && msg.sender.id === state.auth.user?.id) {
+          store.dispatch(updateReadReceipt({
+            chatId: event.chatId,
+            messageId: msgId,
+            userId: event.userId,
+          }));
+        }
+      });
+    }
   });
 }

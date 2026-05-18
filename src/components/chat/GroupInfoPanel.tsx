@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Drawer,
   Box,
@@ -13,21 +13,26 @@ import {
   TextField,
   Button,
   Chip,
+  Badge,
+  CircularProgress,
 } from '@mui/material';
-import { Close, Edit, Group, Circle } from '@mui/icons-material';
+import { Close, Edit, Group, Circle, CameraAlt } from '@mui/icons-material';
 import { useAppSelector } from '@/hooks/useAuth';
 import { Chat } from '@/types';
+import { groupEmitters } from '@/socket/emitters/groupEmitters';
+import { uploadService } from '@/services/uploadService';
 
 interface GroupInfoPanelProps {
   open: boolean;
   chat: Chat | null;
   onClose: () => void;
-  onUpdateName?: (newName: string) => void;
 }
 
-export function GroupInfoPanel({ open, chat, onClose, onUpdateName }: GroupInfoPanelProps) {
+export function GroupInfoPanel({ open, chat, onClose }: GroupInfoPanelProps) {
   const [editing, setEditing] = useState(false);
   const [newName, setNewName] = useState(chat?.groupName || '');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const currentUser = useAppSelector((state) => state.auth.user);
   const onlineUsers = useAppSelector((state) => state.presence.onlineUsers);
 
@@ -37,9 +42,25 @@ export function GroupInfoPanel({ open, chat, onClose, onUpdateName }: GroupInfoP
 
   const handleSaveName = () => {
     if (newName.trim() && newName.trim() !== chat.groupName) {
-      onUpdateName?.(newName.trim());
+      groupEmitters.updateGroup(chat.id, { groupName: newName.trim() });
     }
     setEditing(false);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setIsUploading(true);
+    try {
+      const result = await uploadService.uploadFile(file);
+      console.log('[GroupInfo] Avatar uploaded:', result.url);
+      groupEmitters.updateGroup(chat.id, { groupAvatar: result.url });
+    } catch (err) {
+      console.error('[GroupInfo] Avatar upload failed:', err);
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
   };
 
   return (
@@ -54,9 +75,36 @@ export function GroupInfoPanel({ open, chat, onClose, onUpdateName }: GroupInfoP
 
         {/* Group avatar & name */}
         <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
-          <Avatar sx={{ width: 80, height: 80, mb: 1.5, bgcolor: 'primary.main' }}>
-            <Group sx={{ fontSize: 40 }} />
-          </Avatar>
+          <Badge
+            overlap="circular"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            badgeContent={
+              isAdmin ? (
+                <IconButton
+                  size="small"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' }, width: 28, height: 28 }}
+                >
+                  {isUploading ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CameraAlt sx={{ fontSize: 16 }} />}
+                </IconButton>
+              ) : null
+            }
+          >
+            <Avatar
+              src={chat.groupAvatar}
+              sx={{ width: 80, height: 80, mb: 0.5, bgcolor: 'primary.main' }}
+            >
+              {!chat.groupAvatar && <Group sx={{ fontSize: 40 }} />}
+            </Avatar>
+          </Badge>
+          <input
+            ref={fileInputRef}
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={handleAvatarUpload}
+          />
 
           {editing ? (
             <Box display="flex" gap={1} alignItems="center">

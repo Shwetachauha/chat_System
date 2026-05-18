@@ -57,9 +57,9 @@ export const createPrivateChat = createAsyncThunk(
 
 export const createGroupChat = createAsyncThunk(
   'chat/createGroup',
-  async (data: { groupName: string; members: string[]; groupIcon?: string }, { rejectWithValue }) => {
+  async (data: { groupName: string; members: string[]; groupAvatar?: string }, { rejectWithValue }) => {
     try {
-      return await chatService.createGroupChat(data.groupName, data.members, data.groupIcon);
+      return await chatService.createGroupChat(data.groupName, data.members, data.groupAvatar);
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       return rejectWithValue(err.response?.data?.message || 'Failed to create group');
@@ -108,6 +108,15 @@ const chatSlice = createSlice({
     sortChats(state) {
       state.chats.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     },
+    updateChat(state, action: PayloadAction<Chat>) {
+      const index = state.chats.findIndex((c) => c.id === action.payload.id);
+      if (index !== -1) {
+        state.chats[index] = { ...state.chats[index], ...action.payload };
+      }
+      if (state.activeChat?.id === action.payload.id) {
+        state.activeChat = { ...state.activeChat, ...action.payload };
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -145,5 +154,6 @@ export const {
   addChat,
   updateChatMembers,
   sortChats,
+  updateChat,
 } = chatSlice.actions;
 export default chatSlice.reducer;

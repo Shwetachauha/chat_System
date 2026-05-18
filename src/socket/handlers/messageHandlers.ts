@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io-client';
 import { store } from '@/store';
 import { ServerEvent, Message } from '@/types';
-import { addMessage, addReaction, removeReaction, deleteMessage } from '@/store/slices/messageSlice';
+import { addMessage, addReaction, removeReaction, deleteMessage, editMessageContent } from '@/store/slices/messageSlice';
 import { updateLastMessage, incrementUnread } from '@/store/slices/chatSlice';
 
 interface ReactionEvent {
@@ -71,5 +71,14 @@ export function registerMessageHandlers(socket: Socket): void {
   socket.on(ServerEvent.MESSAGE_DELETED, (data: { chatId: string; messageId: string }) => {
     console.log('[Socket] message_deleted:', data);
     store.dispatch(deleteMessage({ chatId: data.chatId, messageId: data.messageId }));
+  });
+
+  socket.on(ServerEvent.MESSAGE_EDITED, (data: { chatId: string; messageId: string; content: string }) => {
+    console.log('[Socket] message_edited:', data);
+    store.dispatch(editMessageContent({
+      chatId: data.chatId,
+      messageId: data.messageId,
+      content: data.content,
+    }));
   });
 }

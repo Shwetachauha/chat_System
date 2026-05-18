@@ -45,9 +45,11 @@ export function CreateGroupDialog() {
     setIsUploading(true);
     try {
       const result = await uploadService.uploadFile(file);
+      console.log('[GroupIcon] Upload result:', result);
+      console.log('[GroupIcon] Icon URL:', result.url);
       setGroupIcon(result.url);
-    } catch {
-      // upload failed silently
+    } catch (err) {
+      console.error('[GroupIcon] Upload failed:', err);
     } finally {
       setIsUploading(false);
     }
@@ -80,10 +82,15 @@ export function CreateGroupDialog() {
 
   const handleCreate = () => {
     if (!groupName.trim() || selectedUsers.length === 0) return;
+    console.log('[GroupCreate] Creating group with:', {
+      groupName: groupName.trim(),
+      members: selectedUsers.map((u) => u.id),
+      groupAvatar: groupIcon,
+    });
     dispatch(createGroupChat({
       groupName: groupName.trim(),
       members: selectedUsers.map((u) => u.id),
-      ...(groupIcon && { groupIcon }),
+      ...(groupIcon && { groupAvatar: groupIcon }),
     }));
     handleClose();
   };

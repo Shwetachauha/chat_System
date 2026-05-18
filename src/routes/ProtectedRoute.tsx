@@ -13,20 +13,26 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const user = useAppSelector((state) => state.auth.user);
   const [isChecking, setIsChecking] = useState(!isAuthenticated);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      // Try to restore session using refresh token cookie
+    if (isAuthenticated && !user) {
+      // Token exists (from localStorage) but no user — fetch profile
+      authService.getMe()
+        .then((u) => dispatch(setUser(u)))
+        .catch(() => {})
+        .finally(() => setIsChecking(false));
+    } else if (!isAuthenticated) {
+      // No token at all — try refresh cookie
       dispatch(refreshToken())
         .unwrap()
         .then(async () => {
-          // Token refreshed, now get user profile
           try {
-            const user = await authService.getMe();
-            dispatch(setUser(user));
+            const u = await authService.getMe();
+            dispatch(setUser(u));
           } catch {
-            // ignore - user will still be null but authenticated
+            // ignore
           }
         })
         .catch(() => {

@@ -7,6 +7,7 @@ import { LastSeen } from '@/components/presence/LastSeen';
 import { getChatName, getChatAvatar, getOtherUserId } from '@/utils/helpers';
 import { useAppSelector } from '@/hooks/useAuth';
 import { selectIsUserOnline } from '@/store/selectors/presenceSelectors';
+import { useCall } from '@/hooks/useCall';
 
 interface ChatHeaderProps {
   chat: Chat;
@@ -22,6 +23,13 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
   const chatAvatar = getChatAvatar(chat, userId);
   const otherUserId = !chat.isGroupChat ? getOtherUserId(chat, userId) : '';
   const isOnline = useAppSelector(selectIsUserOnline(otherUserId));
+  const { initiateCall, callState } = useCall();
+  const isInCall = callState.status !== 'idle';
+
+  // Find the other user's name for 1-on-1 chats
+  const otherUserName = !chat.isGroupChat
+    ? chat.members.find((m) => m.id !== userId)?.name || chatName
+    : chatName;
 
   const handleHeaderClick = () => {
     if (!chat.isGroupChat && onOpenProfile) {
@@ -84,22 +92,34 @@ export const ChatHeader = memo(function ChatHeader({ chat, onBack, onOpenProfile
       </Box>
 
       <Box display="flex" gap={0.5}>
-        <Tooltip title="Voice call">
-          <IconButton
-            size="small"
-            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
-          >
-            <Call fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Video call">
-          <IconButton
-            size="small"
-            sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
-          >
-            <Videocam fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        {!chat.isGroupChat && (
+          <>
+            <Tooltip title="Voice call">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={isInCall}
+                  onClick={() => initiateCall(otherUserId, otherUserName, 'audio')}
+                  sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
+                >
+                  <Call fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Video call">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={isInCall}
+                  onClick={() => initiateCall(otherUserId, otherUserName, 'video')}
+                  sx={{ color: '#7c5cbf', '&:hover': { color: '#667eea', bgcolor: 'rgba(124,92,191,0.1)' } }}
+                >
+                  <Videocam fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </>
+        )}
         <Tooltip title="More">
           <IconButton
             size="small"

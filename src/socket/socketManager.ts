@@ -6,6 +6,7 @@ import { registerMessageHandlers } from './handlers/messageHandlers';
 import { registerPresenceHandlers } from './handlers/presenceHandlers';
 import { registerTypingHandlers } from './handlers/typingHandlers';
 import { registerGroupHandlers } from './handlers/groupHandlers';
+import { registerCallHandlers } from './handlers/callHandlers';
 import { v4 as uuidv4 } from 'uuid';
 
 class SocketManager {
@@ -108,6 +109,7 @@ class SocketManager {
     registerPresenceHandlers(this.socket);
     registerTypingHandlers(this.socket);
     registerGroupHandlers(this.socket);
+    registerCallHandlers(this.socket);
   }
 
   joinChat(chatId: string): void {
