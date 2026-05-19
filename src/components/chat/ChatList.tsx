@@ -27,6 +27,7 @@ export const ChatList = memo(function ChatList() {
   const { chats, activeChat, isLoading, openChat } = useChat();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.auth.user);
+  const isConnected = useAppSelector((state) => state.ui.isConnected);
   const [searchQuery, setSearchQuery] = useState('');
   const [userSearchOpen, setUserSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -77,6 +78,7 @@ export const ChatList = memo(function ChatList() {
                   name={currentUser?.name || 'User'}
                   src={currentUser?.avatar}
                   size={40}
+                  online={isConnected}
                 />
               </IconButton>
             </Tooltip>
